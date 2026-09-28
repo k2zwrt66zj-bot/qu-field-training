@@ -93,6 +93,8 @@ export function presentForm(form: LoadedForm, actor: Actor) {
   };
 }
 
+export type PresentedForm = ReturnType<typeof presentForm>;
+
 // ------------------------------------------------------------------ الإنشاء
 
 export async function createForm(user: SessionUser, input: { kind: FormKind; domain?: SituationDomain | null; templateKey?: string; title?: string }) {
