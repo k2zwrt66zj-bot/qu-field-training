@@ -1345,8 +1345,11 @@ model SupervisionMeeting {
   decisions String[] // رابعاً: القرارات والتوصيات
 
   secretaryPlacementId String? // أمين الاجتماع (أحد المتدربين)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  submittedAt          DateTime? // رفعه أمين الاجتماع بتوقيعه
+  approvedAt           DateTime? // اعتمده رئيس الاجتماع بتوقيعه
+  returnNote           String?   @db.Text // سبب الإعادة للأمين
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   term               AcademicTerm              @relation(fields: [termId], references: [id], onDelete: Cascade)
   organization       Organization              @relation(fields: [organizationId], references: [id])
