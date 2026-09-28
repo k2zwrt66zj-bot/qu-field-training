@@ -4,11 +4,12 @@
 //  (الأوزان مخزنة في AcademicTerm ويمكن تعديلها لكل فصل)
 // =====================================================================
 
-export interface GradeWeights {
+// نوع (لا interface) ليُخزَّن ضمن تفاصيل الدرجة (JSON)
+export type GradeWeights = {
   fieldWeight: number;
   academicWeight: number;
   attendanceWeight: number;
-}
+};
 
 export interface GradeInput {
   weights: GradeWeights;
@@ -21,6 +22,11 @@ export interface GradeInput {
   unexcusedAbsences: number;
   /** false في التدريب بالمحاكاة: لا ساعات حضور، فيُحسب المكوّن من السجلات الأسبوعية وحدها */
   hoursApplicable?: boolean;
+  /**
+   * false في التدريب بالمحاكاة (قرار القسم): لا مشرف مؤسسي، فيُنقل وزنه كاملاً إلى المشرف الأكاديمي
+   * (40% + 40% = 80% افتراضياً) ولا يُطلب تقييم ميداني
+   */
+  fieldApplicable?: boolean;
 }
 
 export interface GradeBreakdown {
@@ -36,6 +42,8 @@ export interface GradeBreakdown {
     logbookRatio: number;
     absencePenalty: number;
     missing: string[];
+    /** الأوزان الفعلية بعد تطبيق نوع التدريب */
+    effectiveWeights: GradeWeights;
   };
 }
 
@@ -80,13 +88,16 @@ export function validateWeights(w: GradeWeights): void {
  */
 export function calculateFinalGrade(input: GradeInput): GradeBreakdown {
   validateWeights(input.weights);
-  const { weights } = input;
+  const fieldApplicable = input.fieldApplicable ?? true;
+  const weights: GradeWeights = fieldApplicable
+    ? input.weights
+    : { fieldWeight: 0, academicWeight: input.weights.academicWeight + input.weights.fieldWeight, attendanceWeight: input.weights.attendanceWeight };
   const missing: string[] = [];
 
-  if (input.fieldPercentage == null) missing.push("تقييم المشرف الميداني");
+  if (fieldApplicable && input.fieldPercentage == null) missing.push("تقييم المشرف الميداني");
   if (input.academicPercentage == null) missing.push("تقييم المشرف الأكاديمي");
 
-  const fieldComponent = round2(((input.fieldPercentage ?? 0) / 100) * weights.fieldWeight);
+  const fieldComponent = fieldApplicable ? round2(((input.fieldPercentage ?? 0) / 100) * weights.fieldWeight) : 0;
   const academicComponent = round2(((input.academicPercentage ?? 0) / 100) * weights.academicWeight);
 
   const hoursCompleted = round2(input.approvedMinutes / 60);
@@ -106,7 +117,7 @@ export function calculateFinalGrade(input: GradeInput): GradeBreakdown {
     total,
     letterGrade: toLetterGrade(total),
     passed: total >= 60 && missing.length === 0,
-    details: { hoursCompleted, hoursRatio: round2(hoursRatio), logbookRatio: round2(logbookRatio), absencePenalty, missing },
+    details: { hoursCompleted, hoursRatio: round2(hoursRatio), logbookRatio: round2(logbookRatio), absencePenalty, missing, effectiveWeights: weights },
   };
 }
 

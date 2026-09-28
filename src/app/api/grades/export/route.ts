@@ -13,11 +13,13 @@ export const GET = handler(async (req: Request) => {
 
   const rows = await prisma.finalGrade.findMany({
     where: { placement: { termId }, ...(onlyApproved ? { status: { in: ["APPROVED", "PUBLISHED"] } } : {}) },
-    include: { placement: { include: { student: { include: { user: true } }, organization: true, term: true } } },
+    include: { placement: { include: { student: { include: { user: true } }, organization: true, term: true, section: { select: { mode: true } } } } },
     orderBy: { placement: { student: { universityId: "asc" } } },
   });
 
-  const header = ["م", "الرقم الجامعي", "اسم الطالب/ة", "التخصص", "جهة التدريب", "المشرف الميداني (40)", "المشرف الأكاديمي (40)", "التحضير والسجلات (20)", "المجموع (100)", "التقدير", "الحالة"];
+  // الأوزان من الفصل؛ طلاب المحاكاة: المكوّن الميداني «لا ينطبق» ووزنه ضمن الأكاديمي
+  const w = rows[0]?.placement.term ?? { fieldWeight: 40, academicWeight: 40, attendanceWeight: 20 };
+  const header = ["م", "الرقم الجامعي", "اسم الطالب/ة", "التخصص", "نوع التدريب", "جهة التدريب", `المشرف الميداني (${w.fieldWeight})`, `المشرف الأكاديمي (${w.academicWeight}، وللمحاكاة ${w.academicWeight + w.fieldWeight})`, `التحضير والسجلات (${w.attendanceWeight})`, "المجموع (100)", "التقدير", "الحالة"];
   const q = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const lines = rows.map((g, i) =>
     [
@@ -25,8 +27,9 @@ export const GET = handler(async (req: Request) => {
       g.placement.student.universityId,
       g.placement.student.user.fullName,
       MAJOR_LABELS[g.placement.student.major],
+      g.placement.section?.mode === "SIMULATION" ? "بالمحاكاة" : "ميداني",
       g.placement.organization.name,
-      toNum(g.fieldComponent),
+      g.placement.section?.mode === "SIMULATION" ? "لا ينطبق" : toNum(g.fieldComponent),
       toNum(g.academicComponent),
       toNum(g.attendanceComponent),
       toNum(g.total),

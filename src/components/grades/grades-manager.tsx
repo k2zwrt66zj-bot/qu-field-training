@@ -19,6 +19,8 @@ export interface GradeRow {
   letter: string | null;
   status: "CALCULATED" | "APPROVED" | "PUBLISHED" | null;
   missing: string[];
+  /** التدريب بالمحاكاة: لا مشرف مؤسسي، ووزنه منقول إلى الأكاديمي */
+  simulation: boolean;
 }
 
 export function GradesManager({ termId, rows, weights }: { termId: string; rows: GradeRow[]; weights: { f: number; a: number; t: number } }) {
@@ -44,6 +46,7 @@ export function GradesManager({ termId, rows, weights }: { termId: string; rows:
           <CardTitle>رصد واعتماد الدرجات النهائية</CardTitle>
           <CardDescription>
             المشرف الميداني {weights.f}% + المشرف الأكاديمي {weights.a}% + التحضير والسجلات {weights.t}%
+            {rows.some((r) => r.simulation) && <> · المحاكاة: المشرف الأكاديمي {weights.f + weights.a}% + السجلات {weights.t}%</>}
           </CardDescription>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -77,10 +80,16 @@ export function GradesManager({ termId, rows, weights }: { termId: string; rows:
                     <input type="checkbox" disabled={!canApprove} aria-label={`تحديد ${r.student}`} checked={selected.has(r.placementId)}
                       onChange={() => setSelected((s) => { const n = new Set(s); if (n.has(r.placementId)) n.delete(r.placementId); else n.add(r.placementId); return n; })} />
                   </TD>
-                  <TD><div className="font-medium">{r.student}</div><div className="text-xs text-muted-foreground">{r.universityId}</div></TD>
+                  <TD>
+                    <div className="font-medium">{r.student}</div>
+                    <div className="text-xs text-muted-foreground">{r.universityId}{r.simulation && <Badge variant="teal" className="ms-2">محاكاة</Badge>}</div>
+                  </TD>
                   <TD className="text-xs">{r.organization}</TD>
-                  <TD className="tabular-nums">{r.field ?? "—"}</TD>
-                  <TD className="tabular-nums">{r.academic ?? "—"}</TD>
+                  <TD className="tabular-nums">{r.simulation ? <span className="text-xs text-muted-foreground">لا ينطبق</span> : r.field ?? "—"}</TD>
+                  <TD className="tabular-nums">
+                    {r.academic ?? "—"}
+                    {r.simulation && <span className="ms-1 text-xs text-muted-foreground">من {weights.f + weights.a}</span>}
+                  </TD>
                   <TD className="tabular-nums">{r.attendance ?? "—"}</TD>
                   <TD className="font-bold tabular-nums">{r.total ?? "—"}</TD>
                   <TD dir="ltr" className="text-right font-semibold">{r.letter ?? "—"}</TD>

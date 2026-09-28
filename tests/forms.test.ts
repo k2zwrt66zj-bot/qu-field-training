@@ -242,6 +242,24 @@ test("grading: مكوّن التحضير للمحاكاة من السجلات ا
   assert.equal(calculateFinalGrade({ ...base, hoursApplicable: false }).attendanceComponent, 18, "المحاكاة: 0.9 × 20");
 });
 
+test("grading: المحاكاة تنقل وزن المشرف المؤسسي كاملاً إلى الأكاديمي", () => {
+  const input = {
+    weights: { fieldWeight: 40, academicWeight: 40, attendanceWeight: 20 },
+    fieldPercentage: null, academicPercentage: 85, approvedMinutes: 0, requiredHours: 180,
+    expectedWeeklyLogbooks: 10, submittedWeeklyLogbooks: 10, unexcusedAbsences: 0,
+    hoursApplicable: false, fieldApplicable: false,
+  };
+  const sim = calculateFinalGrade(input);
+  assert.equal(sim.fieldComponent, 0);
+  assert.equal(sim.academicComponent, 68, "0.85 × 80");
+  assert.equal(sim.total, 88);
+  assert.deepEqual(sim.details.effectiveWeights, { fieldWeight: 0, academicWeight: 80, attendanceWeight: 20 });
+  assert.ok(!sim.details.missing.includes("تقييم المشرف الميداني"), "لا يُطلب تقييم ميداني");
+  assert.equal(sim.passed, true);
+  // تقييم ميداني قديم (إن وُجد خطأً) لا يُحتسب
+  assert.equal(calculateFinalGrade({ ...input, fieldPercentage: 100 }).total, 88);
+});
+
 // ------------------------------------------------------------ تغطية الواجهات للمخططات
 import { specFor, specKeys } from "../src/lib/forms/ui/specs.ts";
 import { schemasFor } from "../src/lib/forms/schemas/index.ts";

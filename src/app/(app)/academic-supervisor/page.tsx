@@ -21,12 +21,15 @@ export default async function AcademicSupervisorPage() {
     include: {
       student: { include: { user: true } },
       organization: true,
+      section: { select: { mode: true } },
       evaluations: true,
       visits: { orderBy: { visitDate: "desc" }, take: 1 },
       _count: {
         select: {
           attendance: { where: { status: "ABSENT" } },
           logbooks: { where: { status: { in: ["SUBMITTED", "SIGNED", "REVIEWED"] } } },
+          // السجل الأسبوعي بعد التحول: «نموذج تسجيل المهارات والمعارف»
+          forms: { where: { kind: "SKILLS_LOG", status: { in: ["SUBMITTED", "SIGNED", "REVIEWED"] } } },
           visits: true,
         },
       },
@@ -49,15 +52,20 @@ export default async function AcademicSupervisorPage() {
                 const field = p.evaluations.find((e) => e.type === "FIELD" && e.status !== "DRAFT");
                 const mine = p.evaluations.find((e) => e.type === "ACADEMIC");
                 const hours = Math.round(p.approvedMinutes / 60);
+                const sim = p.section?.mode === "SIMULATION";
+                const na = <span className="text-xs text-muted-foreground">لا ينطبق</span>;
                 return (
                   <TR key={p.id}>
-                    <TD><div className="font-medium">{p.student.user.fullName}</div><div className="text-xs text-muted-foreground">{p.student.universityId}</div></TD>
+                    <TD>
+                      <div className="font-medium">{p.student.user.fullName}</div>
+                      <div className="text-xs text-muted-foreground">{p.student.universityId}{sim && <Badge variant="teal" className="ms-2">محاكاة</Badge>}</div>
+                    </TD>
                     <TD className="text-xs">{p.organization.name}</TD>
-                    <TD><div className="text-xs tabular-nums">{hours} / {p.requiredHours}</div><Progress value={(hours / p.requiredHours) * 100} className="h-1.5" /></TD>
-                    <TD><Badge variant={p._count.attendance >= 3 ? "destructive" : "muted"}>{p._count.attendance}</Badge></TD>
-                    <TD className="tabular-nums">{p._count.logbooks}</TD>
+                    <TD>{sim ? na : <><div className="text-xs tabular-nums">{hours} / {p.requiredHours}</div><Progress value={(hours / p.requiredHours) * 100} className="h-1.5" /></>}</TD>
+                    <TD>{sim ? na : <Badge variant={p._count.attendance >= 3 ? "destructive" : "muted"}>{p._count.attendance}</Badge>}</TD>
+                    <TD className="tabular-nums">{p._count.logbooks + p._count.forms}</TD>
                     <TD className="text-xs">{p._count.visits}{p.visits[0] && <div className="text-muted-foreground">آخرها {formatDateAr(p.visits[0].visitDate)}</div>}</TD>
-                    <TD>{field ? <Badge variant="success">{Number(field.percentage)}%</Badge> : <Badge variant="muted">لم يُرصد</Badge>}</TD>
+                    <TD>{sim ? na : field ? <Badge variant="success">{Number(field.percentage)}%</Badge> : <Badge variant="muted">لم يُرصد</Badge>}</TD>
                     <TD>
                       <Link href={`/academic-supervisor/evaluate/${p.id}`} className={buttonVariants({ size: "sm", variant: mine && mine.status !== "DRAFT" ? "outline" : "default" })}>
                         {!mine ? "رصد" : mine.status === "DRAFT" ? "إكمال" : `${Number(mine.percentage)}%`}

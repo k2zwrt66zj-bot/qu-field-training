@@ -14,7 +14,7 @@ export default async function GradesPage() {
   if (!term) return <p>لا يوجد فصل دراسي معرّف.</p>;
   const placements = await prisma.placement.findMany({
     where: { termId: term.id, status: { in: ["ACTIVE", "COMPLETED"] } },
-    include: { student: { include: { user: true } }, organization: true, finalGrade: true },
+    include: { student: { include: { user: true } }, organization: true, finalGrade: true, section: { select: { mode: true } } },
     orderBy: { student: { universityId: "asc" } },
   });
   const rows: GradeRow[] = placements.map((p) => {
@@ -31,6 +31,7 @@ export default async function GradesPage() {
       letter: g?.letterGrade ?? null,
       status: g?.status ?? null,
       missing: ((g?.breakdown as { missing?: string[] } | null)?.missing) ?? [],
+      simulation: p.section?.mode === "SIMULATION",
     };
   });
   return (

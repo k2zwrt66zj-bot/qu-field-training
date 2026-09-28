@@ -120,8 +120,9 @@ export default async function StudentHome() {
           <CardHeader><CardTitle>التقييمات</CardTitle><CardDescription>تظهر النسبة فور اعتماد المشرف للتقييم</CardDescription></CardHeader>
           <CardContent className="space-y-4">
             {[
-              { label: "تقييم المشرف الميداني", ev: field, weight: placement.term.fieldWeight },
-              { label: "تقييم المشرف الأكاديمي", ev: academic, weight: placement.term.academicWeight },
+              // المحاكاة: لا مشرف مؤسسي، ووزنه منقول كاملاً إلى المشرف الأكاديمي (قرار القسم)
+              ...(simulation ? [] : [{ label: "تقييم المشرف الميداني", ev: field, weight: placement.term.fieldWeight }]),
+              { label: "تقييم المشرف الأكاديمي", ev: academic, weight: placement.term.academicWeight + (simulation ? placement.term.fieldWeight : 0) },
             ].map(({ label, ev, weight }) => (
               <div key={label}>
                 <div className="mb-1 flex justify-between text-sm">

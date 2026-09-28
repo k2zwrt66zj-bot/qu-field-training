@@ -54,6 +54,7 @@ export async function computeAndStoreGrade(placementId: string) {
     submittedWeeklyLogbooks: submittedWeekly,
     unexcusedAbsences,
     hoursApplicable: p.section?.mode !== "SIMULATION",
+    fieldApplicable: p.section?.mode !== "SIMULATION",
   });
 
   const data = {
