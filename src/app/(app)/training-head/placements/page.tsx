@@ -41,12 +41,14 @@ export default async function PlacementsPage() {
     status: p.status,
     statusLabel: PLACEMENT_STATUS_LABELS[p.status],
     letters: p.letters.map((l) => ({ id: l.id, type: l.type, serialNumber: l.serialNumber })),
+    sectionId: p.sectionId,
   }));
+  const sections = await prisma.courseSection.findMany({ where: { termId: term.id }, orderBy: [{ trainingNumber: "asc" }, { sectionNumber: "asc" }] });
 
   return (
     <>
       <PageHeader title="توزيع الطلاب والخطابات الرسمية" description={`${term.name} · ${rows.length} إسناد`} />
-      <PlacementsManager termId={term.id} rows={rows} unplacedCount={unplacedCount} />
+      <PlacementsManager termId={term.id} rows={rows} unplacedCount={unplacedCount} sections={sections.map((s) => ({ id: s.id, label: `${s.sectionNumber} — ${s.courseName}`, mode: s.mode }))} />
     </>
   );
 }

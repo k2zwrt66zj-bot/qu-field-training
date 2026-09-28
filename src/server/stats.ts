@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { riyadhDateOnly } from "@/lib/time";
 import { toNum } from "@/lib/utils";
 import { ORG_CATEGORY_LABELS } from "@/lib/labels";
+import { FIELD_MODE_ONLY } from "@/server/attendance";
 
 export async function getActiveTerm() {
   return (await prisma.academicTerm.findFirst({ where: { isActive: true } })) ?? prisma.academicTerm.findFirst({ orderBy: { startDate: "desc" } });
@@ -12,7 +13,8 @@ export async function getTrainingHeadStats(termId: string) {
   const today = riyadhDateOnly();
   const from = new Date(today);
   from.setUTCDate(from.getUTCDate() - 13);
-  const running = { termId, status: { in: ["ASSIGNED", "ACTIVE"] as ("ASSIGNED" | "ACTIVE")[] } };
+  // مؤشرات الحضور والساعات للتدريب الميداني فقط (المحاكاة بلا تحضير)
+  const running = { termId, status: { in: ["ASSIGNED", "ACTIVE"] as ("ASSIGNED" | "ACTIVE")[] }, ...FIELD_MODE_ONLY };
 
   const [active, todayRecords, pendingApprovals, suspiciousOpen, alerts, trendRaw, latestCheckIns, placements] = await Promise.all([
     prisma.placement.count({ where: running }),
@@ -113,6 +115,7 @@ export async function getExecutiveStats(termId: string) {
         requiredHours: true,
         organizationId: true,
         student: { select: { major: true, gender: true } },
+        section: { select: { mode: true } },
       },
     }),
     prisma.finalGrade.findMany({ where: { placement: { termId } }, select: { total: true, letterGrade: true, status: true } }),
@@ -135,9 +138,12 @@ export async function getExecutiveStats(termId: string) {
     طالبات: placements.filter((p) => p.student.major === major && p.student.gender === "FEMALE").length,
   }));
 
-  const completion = total
-    ? placements.reduce((s, p) => s + Math.min(1, p.approvedMinutes / 60 / p.requiredHours), 0) / total
+  // إنجاز الساعات للتدريب الميداني فقط (المحاكاة بلا ساعات حضور)
+  const fieldPlacements = placements.filter((p) => p.section?.mode !== "SIMULATION");
+  const completion = fieldPlacements.length
+    ? fieldPlacements.reduce((s, p) => s + Math.min(1, p.approvedMinutes / 60 / p.requiredHours), 0) / fieldPlacements.length
     : 0;
+  const simulation = total - fieldPlacements.length;
   const completed = placements.filter((p) => p.status === "COMPLETED").length;
 
   const avgGrade = grades.length ? grades.reduce((s, g) => s + toNum(g.total), 0) / grades.length : null;
@@ -193,6 +199,7 @@ export async function getExecutiveStats(termId: string) {
       female: placements.filter((p) => p.student.gender === "FEMALE").length,
       completion,
       completed,
+      simulation,
       avgGrade,
       passRate,
       partners: orgPerf.length,

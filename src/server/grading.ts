@@ -10,12 +10,26 @@ function expectedWeeks(start: Date, end: Date, today = riyadhDateOnly()): number
   return Math.max(0, Math.floor(days / 7));
 }
 
+/**
+ * عدد الأسابيع التي رُفع لها سجل: من «نموذج تسجيل المهارات والمعارف» الجديد
+ * ومن السجلات الأسبوعية السابقة (الأرشيف)، دون تكرار الأسبوع
+ */
+async function weeklyLogWeeks(placementId: string) {
+  const submitted = { in: ["SUBMITTED", "SIGNED", "REVIEWED"] as ("SUBMITTED" | "SIGNED" | "REVIEWED")[] };
+  const [legacy, current] = await Promise.all([
+    prisma.logbook.findMany({ where: { placementId, type: "WEEKLY", status: submitted }, select: { weekNumber: true } }),
+    prisma.skillsLog.findMany({ where: { form: { placementId, status: submitted } }, select: { weekNumber: true } }),
+  ]);
+  return new Set([...legacy.map((l) => l.weekNumber), ...current.map((c) => c.weekNumber)].filter((w): w is number => w != null)).size;
+}
+
 /** يحسب الدرجة النهائية لإسناد واحد ويخزنها (دون المساس بالدرجات المعتمدة) */
 export async function computeAndStoreGrade(placementId: string) {
   const p = await prisma.placement.findUniqueOrThrow({
     where: { id: placementId },
     include: {
       term: true,
+      section: { select: { mode: true } },
       evaluations: { where: { status: { in: ["SUBMITTED", "LOCKED"] } } },
       finalGrade: true,
     },
@@ -23,7 +37,7 @@ export async function computeAndStoreGrade(placementId: string) {
   if (p.finalGrade && p.finalGrade.status !== "CALCULATED") return { skipped: true as const, grade: p.finalGrade };
 
   const [submittedWeekly, unexcusedAbsences] = await Promise.all([
-    prisma.logbook.count({ where: { placementId, type: "WEEKLY", status: { in: ["SUBMITTED", "SIGNED", "REVIEWED"] } } }),
+    weeklyLogWeeks(placementId),
     prisma.attendanceRecord.count({ where: { placementId, status: "ABSENT" } }),
   ]);
 
@@ -39,6 +53,7 @@ export async function computeAndStoreGrade(placementId: string) {
     expectedWeeklyLogbooks: expectedWeeks(p.startDate, p.endDate),
     submittedWeeklyLogbooks: submittedWeekly,
     unexcusedAbsences,
+    hoursApplicable: p.section?.mode !== "SIMULATION",
   });
 
   const data = {

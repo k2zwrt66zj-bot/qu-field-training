@@ -10,6 +10,7 @@ export const GET = handler(async () => {
   const today = riyadhDateOnly();
   const placement = await getActivePlacementForStudent(user.id, today);
   if (!placement) return NextResponse.json({ placement: null });
+  if (placement.section?.mode === "SIMULATION") return NextResponse.json({ placement: null, simulation: true });
 
   const record = await prisma.attendanceRecord.findUnique({
     where: { placementId_date: { placementId: placement.id, date: today } },

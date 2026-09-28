@@ -5,7 +5,8 @@ import { createHash } from "node:crypto";
 import { Prisma, type FormKind, type SignatureSlot, type SituationDomain } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ApiError, audit, type SessionUser } from "@/lib/api";
-import { FORM_POLICIES, SLOT_LABELS, formDisplayTitle } from "@/lib/forms/catalog";
+import { SLOT_LABELS, TRAINING_MODE_LABELS, formDisplayTitle, isKindApplicable, policyFor } from "@/lib/forms/catalog";
+import type { TrainingMode } from "@prisma/client";
 import { nextState, type FormAction } from "@/lib/forms/workflow";
 import { allowedActions, can, type Actor, type FormPermission } from "@/lib/forms/permissions";
 import { validateForm } from "@/lib/forms/schemas";
@@ -20,6 +21,8 @@ import { defaultDomain, prefillDetail } from "./prefill";
 const OFFICIAL = Object.keys(DETAIL_RELATION) as OfficialKind[];
 const isOfficial = (k: FormKind): k is OfficialKind => (OFFICIAL as string[]).includes(k);
 const domainOf = (f: LoadedForm) => f.quickSituation?.domain ?? null;
+/** نوع التدريب من الشعبة (الافتراضي ميداني) */
+export const modeOf = (placement: { section?: { mode: TrainingMode } | null }): TrainingMode => placement.section?.mode ?? "FIELD";
 
 // ------------------------------------------------------------------ التحميل والصلاحيات
 
@@ -40,7 +43,7 @@ export async function loadFormFor(user: SessionUser, id: string, perm: FormPermi
   const form = await prisma.fieldForm.findUnique({ where: { id }, include: FORM_INCLUDE });
   if (!form) throw new ApiError(404, "النموذج غير موجود");
   const actor = actorFor(user, form);
-  const policy = FORM_POLICIES[form.kind];
+  const policy = policyFor(form.kind, modeOf(form.placement));
   if (!can(actor, policy, stateOf(form), "VIEW")) throw new ApiError(404, "النموذج غير موجود");
   if (perm !== "VIEW" && !can(actor, policy, stateOf(form), perm)) {
     throw new ApiError(403, perm === "EDIT" ? "لا يمكن تعديل النموذج في حالته الحالية" : "ليست لديك صلاحية لهذا الإجراء");
@@ -50,7 +53,8 @@ export async function loadFormFor(user: SessionUser, id: string, perm: FormPermi
 
 /** العرض الكامل للواجهة: البيانات (بعد الإخفاء) + التواقيع + المرفقات + الملاحظات + الإجراءات المسموحة */
 export function presentForm(form: LoadedForm, actor: Actor) {
-  const policy = FORM_POLICIES[form.kind];
+  const mode = modeOf(form.placement);
+  const policy = policyFor(form.kind, mode);
   const data = applyPrivacy(form.kind, serializeForm(form), actor);
   const r = form.reading;
   return {
@@ -65,6 +69,8 @@ export function presentForm(form: LoadedForm, actor: Actor) {
     fieldApprovedAt: form.fieldApprovedAt,
     academicApprovedAt: form.academicApprovedAt,
     academicScore: form.academicScore == null ? null : Number(form.academicScore),
+    mode,
+    modeLabel: TRAINING_MODE_LABELS[mode],
     placement: {
       id: form.placementId,
       student: form.placement.student.user.fullName,
@@ -89,15 +95,18 @@ export async function createForm(user: SessionUser, input: { kind: FormKind; dom
   const kind = input.kind;
   const placement = await prisma.placement.findFirst({
     where: { student: { userId: user.id }, status: { in: ["ASSIGNED", "ACTIVE"] } },
-    include: { organization: true, fieldSupervisor: { include: { user: true } } },
+    include: { organization: true, fieldSupervisor: { include: { user: true } }, section: true },
     orderBy: { startDate: "desc" },
   });
   if (!placement) throw new ApiError(404, "لا يوجد تدريب ميداني فعّال");
 
-  const policy = FORM_POLICIES[kind];
+  const mode = modeOf(placement);
+  if (!isKindApplicable(kind, mode)) throw new ApiError(422, "هذا النموذج لا ينطبق على التدريب بالمحاكاة (لا يوجد مقر تدريب فعلي)");
+  const policy = policyFor(kind, mode);
   const domain = kind === "QUICK_SITUATION" ? input.domain ?? defaultDomain(placement.organization.category) : null;
   if (kind === "QUICK_SITUATION" && !domain) throw new ApiError(422, "حدد مجال الموقف السريع: مدرسي أو طبي");
-  if (kind !== "COMMENCEMENT" && placement.status === "ASSIGNED") {
+  // الميداني: لا نماذج قبل اعتماد المباشرة. المحاكاة: لا مباشرة، يبدأ التدريب بأول نموذج
+  if (mode === "FIELD" && kind !== "COMMENCEMENT" && placement.status === "ASSIGNED") {
     const commenced = await prisma.fieldForm.count({ where: { placementId: placement.id, kind: "COMMENCEMENT", status: { in: ["SIGNED", "REVIEWED"] } } });
     if (!commenced) throw new ApiError(409, "ابدأ بنموذج المباشرة واعتماده من المشرف المؤسسي أولاً");
   }
@@ -108,6 +117,9 @@ export async function createForm(user: SessionUser, input: { kind: FormKind; dom
         const last = await tx.fieldForm.findFirst({ where: { placementId: placement.id, kind }, orderBy: { sequence: "desc" }, select: { id: true, sequence: true } });
         if (policy.singleton && last) throw new ApiError(409, "هذا النموذج موجود مسبقاً", { existingId: last.id });
         const detail = await prefillDetail(tx, kind, placement, domain);
+        if (mode === "SIMULATION" && placement.status === "ASSIGNED") {
+          await tx.placement.update({ where: { id: placement.id }, data: { status: "ACTIVE", commencedAt: new Date() } });
+        }
         const form = await tx.fieldForm.create({
           data: {
             kind,

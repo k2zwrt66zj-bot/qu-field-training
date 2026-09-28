@@ -3,7 +3,7 @@ import { z } from "zod";
 import { audit, handler, parseBody, requireRole } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { placementScope } from "@/server/access";
-import { FORM_KINDS, FORM_POLICIES, formDisplayTitle } from "@/lib/forms/catalog";
+import { FORM_KINDS, FORM_POLICIES, formDisplayTitle, policyFor } from "@/lib/forms/catalog";
 import { createForm } from "@/server/forms/service";
 
 /**
@@ -25,11 +25,11 @@ export const GET = handler(async (req: Request) => {
     select: {
       id: true, kind: true, sequence: true, status: true, submittedAt: true, updatedAt: true, lockedAt: true, placementId: true,
       quickSituation: { select: { domain: true } },
-      placement: { select: { student: { select: { user: { select: { fullName: true } } } } } },
+      placement: { select: { student: { select: { user: { select: { fullName: true } } } }, section: { select: { mode: true } } } },
     },
   });
   // القراءات لا يراها المشرف المؤسسي (لا تمرّ عليه)
-  const visible = user.role === "FIELD_SUPERVISOR" ? forms.filter((f) => FORM_POLICIES[f.kind].fieldApproval) : forms;
+  const visible = user.role === "FIELD_SUPERVISOR" ? forms.filter((f) => policyFor(f.kind, f.placement.section?.mode).fieldApproval) : forms;
   visible.sort((a, b) => FORM_POLICIES[a.kind].portfolioOrder - FORM_POLICIES[b.kind].portfolioOrder || a.sequence - b.sequence);
   return NextResponse.json({
     forms: visible.map((f) => ({

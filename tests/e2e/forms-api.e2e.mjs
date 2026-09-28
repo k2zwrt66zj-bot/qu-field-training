@@ -221,7 +221,7 @@ r = await api("441100003@qu.edu.sa", "GET", attUrl);
 check(r.status === 404, "طالب آخر لا يصل للمرفق");
 
 // =====================================================================
-section("هـ) الموقف السريع الطبي: إخفاء رقم الملف لغير الطالب والمشرف المؤسسي");
+section("هـ) الموقف السريع الطبي: الرقم كاملاً للطالب والمشرفَين المسؤولين فقط");
 r = await api(S1, "POST", "/api/forms", { kind: "QUICK_SITUATION" });
 check(r.status === 201, "المجال طبي تلقائياً (جهة التدريب مستشفى)");
 const qsId = r.json.id;
@@ -229,7 +229,9 @@ await api(S1, "PATCH", `/api/forms/${qsId}`, { data: { situationDate: "2026-09-2
 r = await tr(S1, qsId, { action: "SUBMIT" });
 check(r.status === 200, "رفع الموقف السريع", r.json);
 check((await api(F1, "GET", `/api/forms/${qsId}`)).json.form.data.medicalFileNumber === "MRN-778812", "المشرف المؤسسي يرى الرقم كاملاً");
-check((await api(A1, "GET", `/api/forms/${qsId}`)).json.form.data.medicalFileNumber === "•••••••812", "المشرف الأكاديمي يرى الرقم مخفياً");
+check((await api(A1, "GET", `/api/forms/${qsId}`)).json.form.data.medicalFileNumber === "MRN-778812", "المشرف الأكاديمي المسؤول يرى الرقم كاملاً (قرار القسم)");
+check((await api(TH, "GET", `/api/forms/${qsId}`)).json.form.data.medicalFileNumber === "•••••••812", "رئيس الوحدة يرى الرقم مخفياً");
+check((await api("omar.alnamlah@qu.edu.sa", "GET", `/api/forms/${qsId}`)).json.form.data.medicalFileNumber === "•••••••812", "رئيس القسم يرى الرقم مخفياً");
 check((await api(A1, "GET", `/api/forms/${qsId}`)).json.form.title === "تسجيل الموقف السريع بالمستشفى", "العنوان الرسمي حسب المجال");
 
 // =====================================================================
@@ -257,6 +259,31 @@ await tr(S1, opId, { action: "SUBMIT" });
 await tr(F1, opId, { action: "FIELD_SIGN", signatures: [sig("FIELD_SUPERVISOR")] });
 await tr(A1, opId, { action: "ACADEMIC_APPROVE" });
 check(sql(`select "socialWorkersCount"||'/'||"beneficiariesCount" from "Organization" o join "Placement" p on p."organizationId"=o.id join "StudentProfile" s on s.id=p."studentId" join "User" u on u.id=s."userId" where u.email='${S1}'`) === "7/15000", "إحصاءات الجهة محدّثة");
+
+// =====================================================================
+section("ح) التدريب بالمحاكاة: لا مباشرة ولا تعريفي ولا تحضير، والاعتماد أكاديمي مباشر");
+const SIM = "441100025@qu.edu.sa";
+r = await api(SIM, "POST", "/api/forms", { kind: "COMMENCEMENT" });
+check(r.status === 422 && r.json.error.includes("المحاكاة"), "نموذج المباشرة غير متاح", r.json);
+r = await api(SIM, "POST", "/api/forms", { kind: "ORGANIZATION_PROFILE" });
+check(r.status === 422, "التقرير التعريفي بالمؤسسة غير متاح");
+r = await api(SIM, "POST", "/api/attendance/check-in", { samples: [{ latitude: 26.3489, longitude: 43.7668, accuracy: 10, timestamp: Date.now() }] });
+check(r.status === 422 && r.json.error.includes("المحاكاة"), "التحضير الجغرافي مرفوض", r.json);
+r = await api(SIM, "GET", "/api/attendance/today");
+check(r.json.simulation === true && r.json.placement === null, "شاشة التحضير تعرف أنه طالب محاكاة");
+r = await api(SIM, "POST", "/api/forms", { kind: "READING" });
+const simRd = r.json.id;
+await api(SIM, "PATCH", `/api/forms/${simRd}`, { data: { sourceType: "JOURNAL_ARTICLE", readingDate: "2026-09-15", authors: ["Smith, J."], publicationYear: 2023, title: "T", containerTitle: "J", volume: "4", purpose: words(20), professionalBenefit: words(45) } });
+r = await api(SIM, "POST", "/api/forms", { kind: "QUICK_SITUATION", domain: "SCHOOL" });
+const simQs = r.json.id;
+check(r.status === 201, "الموقف السريع متاح (المجال يُحدد يدوياً)");
+await api(SIM, "PATCH", `/api/forms/${simQs}`, { data: { situationDate: "2026-09-16", schoolGrade: "الثاني المتوسط", referralSource: "المعلم", summary: "موقف تدريبي بالمحاكاة", actionsTaken: "…" } });
+r = await tr(SIM, simQs, { action: "SUBMIT" });
+check(r.status === 200 && r.json.form.mode === "SIMULATION" && !r.json.form.policy.fieldApproval, "رُفع بمسار المحاكاة (بلا مشرف مؤسسي)", r.json?.form?.policy);
+r = await tr("academic1@qu.edu.sa", simQs, { action: "ACADEMIC_APPROVE" });
+check(r.status === 200 && r.json.form.status === "REVIEWED", "اعتماد أكاديمي مباشر دون توقيع مؤسسي");
+r = await api(TH, "GET", `/api/forms?placementId=${sql(`select p.id from "Placement" p join "StudentProfile" s on s.id=p."studentId" where s."universityId"='441100025'`)}`);
+check(r.json.forms.length === 1 && r.json.forms[0].kind === "QUICK_SITUATION", "رئيس الوحدة يرى نماذج طالب المحاكاة المرفوعة فقط");
 
 // =====================================================================
 section("ز) القوائم والقفل بعد اعتماد النتيجة");

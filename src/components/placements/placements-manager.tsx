@@ -21,7 +21,10 @@ export interface PlacementRow {
   status: string;
   statusLabel: string;
   letters: { id: string; type: string; serialNumber: string }[];
+  sectionId: string | null;
 }
+
+export interface SectionOption { id: string; label: string; mode: "FIELD" | "SIMULATION" }
 
 const LETTER_TYPES = [
   { v: "REFERRAL", l: "خطاب توجيه" },
@@ -34,7 +37,7 @@ interface AssignPreview {
   unassigned: { studentName: string }[];
 }
 
-export function PlacementsManager({ termId, rows, unplacedCount }: { termId: string; rows: PlacementRow[]; unplacedCount: number }) {
+export function PlacementsManager({ termId, rows, unplacedCount, sections }: { termId: string; rows: PlacementRow[]; unplacedCount: number; sections: SectionOption[] }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [letterType, setLetterType] = useState("REFERRAL");
@@ -126,7 +129,7 @@ export function PlacementsManager({ termId, rows, unplacedCount }: { termId: str
             <THead>
               <TR>
                 <TH className="w-8"><input type="checkbox" aria-label="تحديد الكل" checked={allSelected} onChange={() => setSelected(allSelected ? new Set() : new Set(rows.map((r) => r.id)))} /></TH>
-                <TH>الطالب/ة</TH><TH>التخصص</TH><TH>جهة التدريب</TH><TH>المشرف الميداني</TH><TH>المشرف الأكاديمي</TH><TH>الحالة</TH><TH>الخطابات</TH>
+                <TH>الطالب/ة</TH><TH>التخصص</TH><TH>الشعبة</TH><TH>جهة التدريب</TH><TH>المشرف الميداني</TH><TH>المشرف الأكاديمي</TH><TH>الحالة</TH><TH>الخطابات</TH>
               </TR>
             </THead>
             <TBody>
@@ -135,6 +138,24 @@ export function PlacementsManager({ termId, rows, unplacedCount }: { termId: str
                   <TD><input type="checkbox" aria-label={`تحديد ${r.student}`} checked={selected.has(r.id)} onChange={() => toggle(r.id)} /></TD>
                   <TD><div className="font-medium">{r.student}</div><div className="text-xs text-muted-foreground">{r.universityId} · {r.gender}</div></TD>
                   <TD className="text-xs">{r.major}</TD>
+                  <TD>
+                    <select
+                      aria-label={`شعبة ${r.student}`}
+                      className="h-8 max-w-40 rounded-md border border-input bg-card px-2 text-xs"
+                      value={r.sectionId ?? ""}
+                      disabled={pending}
+                      onChange={(e) =>
+                        start(async () => {
+                          const res = await fetch(`/api/placements/${r.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sectionId: e.target.value || null }) });
+                          setMsg(res.ok ? "تم تحديث الشعبة" : (await res.json()).error);
+                          router.refresh();
+                        })
+                      }
+                    >
+                      <option value="">— بلا شعبة (ميداني) —</option>
+                      {sections.map((s) => <option key={s.id} value={s.id}>{s.label}{s.mode === "SIMULATION" ? " · محاكاة" : ""}</option>)}
+                    </select>
+                  </TD>
                   <TD><div>{r.organization}</div><div className="text-xs text-muted-foreground">{r.category}</div></TD>
                   <TD className="text-xs">{r.fieldSupervisor ?? <Badge variant="warning">غير محدد</Badge>}</TD>
                   <TD className="text-xs">{r.academicSupervisor ?? <Badge variant="warning">غير محدد</Badge>}</TD>

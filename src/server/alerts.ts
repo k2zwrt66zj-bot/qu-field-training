@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { riyadhDateOnly } from "@/lib/time";
+import { FIELD_MODE_ONLY } from "@/server/attendance";
 
 /**
  * مهمة يومية (Cron) بعد نهاية الدوام:
@@ -10,7 +11,7 @@ import { riyadhDateOnly } from "@/lib/time";
 export async function runDailyAttendanceSweep(now = new Date()) {
   const today = riyadhDateOnly(now);
   const placements = await prisma.placement.findMany({
-    where: { status: { in: ["ASSIGNED", "ACTIVE"] }, startDate: { lte: today } },
+    where: { status: { in: ["ASSIGNED", "ACTIVE"] }, startDate: { lte: today }, ...FIELD_MODE_ONLY },
     include: { term: true, student: { include: { user: true } }, organization: true },
   });
 

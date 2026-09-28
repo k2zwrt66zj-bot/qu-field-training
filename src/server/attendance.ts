@@ -19,7 +19,7 @@ export async function getActivePlacementForStudent(userId: string, date = riyadh
       startDate: { lte: date },
       endDate: { gte: date },
     },
-    include: { organization: true, term: true, student: { include: { user: true } }, fieldSupervisor: true },
+    include: { organization: true, term: true, student: { include: { user: true } }, fieldSupervisor: true, section: true },
   });
 }
 
@@ -42,6 +42,7 @@ export async function recordAttendance(input: AttendanceActionInput): Promise<At
   const today = riyadhDateOnly(now);
   const placement = await getActivePlacementForStudent(input.userId, today);
   if (!placement) throw new ApiError(404, "لا يوجد تدريب ميداني فعّال لك اليوم");
+  if (placement.section?.mode === "SIMULATION") throw new ApiError(422, "التدريب بالمحاكاة لا يتطلب تحضيراً جغرافياً (لا يوجد مقر تدريب فعلي)");
   if (!placement.workDays.includes(riyadhWeekday(now))) throw new ApiError(422, "اليوم ليس من أيام التدريب المعتمدة");
 
   const org = placement.organization;
@@ -199,3 +200,6 @@ export async function recomputeApprovedMinutes(placementId: string, tx: Prisma.T
   await tx.placement.update({ where: { id: placementId }, data: { approvedMinutes } });
   return approvedMinutes;
 }
+
+/** شرط Prisma: الإسنادات الميدانية فقط (تستبعد المحاكاة من الحضور والغياب وإحصاءاتهما) */
+export const FIELD_MODE_ONLY = { OR: [{ sectionId: null }, { section: { mode: "FIELD" as const } }] };

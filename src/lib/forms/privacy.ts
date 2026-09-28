@@ -1,5 +1,6 @@
 // إخفاء البيانات الحساسة حسب المشاهد (نظام حماية البيانات الشخصية)
-// القرار الافتراضي: رقم الملف الطبي كاملاً للطالب والمشرف المؤسسي (من موظفي المنشأة الصحية) فقط.
+// قرار القسم: رقم الملف الطبي يظهر كاملاً للطالب، والمشرف المؤسسي، والمشرف الأكاديمي المسؤول عن الطالب فقط؛
+// ويُحجب عن غيرهم (رئيس الوحدة، رئيس القسم، مدير النظام).
 
 export function maskIdentifier(value: string | null | undefined): string | null {
   if (!value) return value ?? null;
@@ -11,11 +12,15 @@ export function maskIdentifier(value: string | null | undefined): string | null 
 export interface PrivacyViewer {
   isOwner: boolean;
   isFieldSupervisor: boolean;
+  isAcademicSupervisor: boolean;
 }
+
+/** المخوَّلون برؤية البيانات الصحية التعريفية كاملة */
+export const mayViewHealthIdentifiers = (v: PrivacyViewer) => v.isOwner || v.isFieldSupervisor || v.isAcademicSupervisor;
 
 /** يطبق الإخفاء على بيانات النموذج المُسلسلة قبل إرسالها */
 export function applyPrivacy<T extends Record<string, unknown>>(kind: string, data: T, viewer: PrivacyViewer): T {
-  if (kind === "QUICK_SITUATION" && "medicalFileNumber" in data && !(viewer.isOwner || viewer.isFieldSupervisor)) {
+  if (kind === "QUICK_SITUATION" && "medicalFileNumber" in data && !mayViewHealthIdentifiers(viewer)) {
     return { ...data, medicalFileNumber: maskIdentifier(data.medicalFileNumber as string | null) };
   }
   return data;

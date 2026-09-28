@@ -2,7 +2,7 @@
 //  كتالوج النماذج الرسمية وسياسة كل نموذج في سير العمل
 //  (ملف نقي: لا يعتمد على قاعدة البيانات — تستورده الواجهة والخادم والاختبارات)
 // =====================================================================
-import type { FormKind, SignatureSlot, SituationDomain } from "@prisma/client";
+import type { FormKind, SignatureSlot, SituationDomain, TrainingMode } from "@prisma/client";
 
 export const FORM_KINDS = [
   "COMMENCEMENT", "ORGANIZATION_PROFILE", "TRAINING_PLAN", "SKILLS_LOG", "GROUP_PROGRAM",
@@ -73,3 +73,31 @@ export function formDisplayTitle(kind: FormKind, sequence: number, domain?: Situ
   const title = kind === "QUICK_SITUATION" && domain ? SITUATION_TITLES[domain] : p.title;
   return p.numbered ? `${title} رقم (${sequence})` : title;
 }
+
+// ---------------------------------------------------------------------
+//  التدريب بالمحاكاة (قرار القسم): لا مقر تدريب فعلي
+//   - تُستثنى النماذج المرتبطة بالمقر: المباشرة، والتقرير التعريفي بالمؤسسة
+//     (ويُستثنى أيضاً التحضير الجغرافي وسجل الحضور والانصراف — خارج النماذج)
+//   - لا مشرف مؤسسي: تذهب النماذج إلى المشرف الأكاديمي مباشرة
+// ---------------------------------------------------------------------
+export const SITE_BOUND_KINDS: FormKind[] = ["COMMENCEMENT", "ORGANIZATION_PROFILE"];
+
+export const TRAINING_MODE_LABELS: Record<TrainingMode, string> = {
+  FIELD: "التدريب الميداني",
+  SIMULATION: "التدريب الميداني بالمحاكاة",
+};
+
+export function isKindApplicable(kind: FormKind, mode: TrainingMode): boolean {
+  return mode === "FIELD" || !SITE_BOUND_KINDS.includes(kind);
+}
+
+/** سياسة النموذج بعد تطبيق نوع التدريب */
+export function policyFor(kind: FormKind, mode: TrainingMode = "FIELD"): FormPolicy {
+  const p = FORM_POLICIES[kind];
+  if (mode === "FIELD") return p;
+  return { ...p, fieldApproval: false, slotsOnFieldSign: [], fieldCanEditWhileSubmitted: false };
+}
+
+/** النماذج المتاحة لنوع التدريب بترتيب السجل المهني */
+export const kindsForMode = (mode: TrainingMode) =>
+  (FORM_KINDS.filter((k) => k !== "CUSTOM" && isKindApplicable(k, mode)) as FormKind[]).sort((a, b) => FORM_POLICIES[a].portfolioOrder - FORM_POLICIES[b].portfolioOrder);

@@ -19,6 +19,8 @@ export interface GradeInput {
   expectedWeeklyLogbooks: number; // عدد السجلات الأسبوعية المتوقعة حتى تاريخه
   submittedWeeklyLogbooks: number; // المرفوعة (مرفوعة أو موقعة أو مراجعة)
   unexcusedAbsences: number;
+  /** false في التدريب بالمحاكاة: لا ساعات حضور، فيُحسب المكوّن من السجلات الأسبوعية وحدها */
+  hoursApplicable?: boolean;
 }
 
 export interface GradeBreakdown {
@@ -91,10 +93,10 @@ export function calculateFinalGrade(input: GradeInput): GradeBreakdown {
   const hoursRatio = input.requiredHours > 0 ? clamp01(hoursCompleted / input.requiredHours) : 0;
   const logbookRatio =
     input.expectedWeeklyLogbooks > 0 ? clamp01(input.submittedWeeklyLogbooks / input.expectedWeeklyLogbooks) : 1;
-  const absencePenalty = Math.min(input.unexcusedAbsences * 1, weights.attendanceWeight / 2);
-  const attendanceComponent = round2(
-    Math.max(0, (hoursRatio * 0.5 + logbookRatio * 0.5) * weights.attendanceWeight - absencePenalty)
-  );
+  const hoursApplicable = input.hoursApplicable ?? true;
+  const absencePenalty = hoursApplicable ? Math.min(input.unexcusedAbsences * 1, weights.attendanceWeight / 2) : 0;
+  const ratio = hoursApplicable ? hoursRatio * 0.5 + logbookRatio * 0.5 : logbookRatio;
+  const attendanceComponent = round2(Math.max(0, ratio * weights.attendanceWeight - absencePenalty));
 
   const total = round2(fieldComponent + academicComponent + attendanceComponent);
   return {

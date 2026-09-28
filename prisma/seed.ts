@@ -180,6 +180,37 @@ async function main() {
     });
   }
 
+  // ---------- الشعب: ميداني وبالمحاكاة ----------
+  const fieldSection = await prisma.courseSection.create({
+    data: { termId: term.id, courseName: "التدريب الميداني (1)", courseCode: "SOC 481", sectionNumber: "4810", trainingNumber: 1, mode: "FIELD" },
+  });
+  const simSection = await prisma.courseSection.create({
+    data: { termId: term.id, courseName: "التدريب الميداني بالمحاكاة", courseCode: "SOC 482", sectionNumber: "4820", trainingNumber: 1, mode: "SIMULATION", academicSupervisorId: academics[0].id },
+  });
+  await prisma.placement.updateMany({ where: { termId: term.id }, data: { sectionId: fieldSection.id } });
+
+  // ---------- طلاب المحاكاة: مختبر المحاكاة بالقسم (غير متاح للتوزيع الميداني) ----------
+  const simLab = await prisma.organization.create({
+    data: {
+      name: "مختبر المحاكاة المهنية بالقسم", category: "OTHER", city: "بريدة", address: "جامعة القصيم — المليداء",
+      latitude: 26.3489, longitude: 43.7668, geofenceRadius: 100, genderScope: "BOTH", acceptedMajors: [], capacityMale: 20, capacityFemale: 20,
+      isApproved: false, notes: "مقر افتراضي لطلاب التدريب بالمحاكاة — لا تحضير جغرافي",
+    },
+  });
+  for (const [uid, name, gender, major, academic] of [
+    ["441100025", "سلمان العنزي", "MALE", "SOCIOLOGY", maleAcademics[0]],
+    ["441100026", "هند الدوسري", "FEMALE", "SOCIAL_WORK", femaleAcademics[0]],
+  ] as const) {
+    const u = await mkUser(`${uid}@qu.edu.sa`, name, "STUDENT", gender, "05" + uid.slice(-8));
+    const sp = await prisma.studentProfile.create({ data: { userId: u.id, universityId: uid, major, gender, level: 7, gpa: 4.1, city: "بريدة" } });
+    await prisma.placement.create({
+      data: {
+        studentId: sp.id, termId: term.id, organizationId: simLab.id, academicSupervisorId: academic.id, sectionId: simSection.id,
+        startDate: start, endDate: end, requiredHours: 180, workDays: [0, 1, 2, 3], status: "ACTIVE", commencedAt: start,
+      },
+    });
+  }
+
   // ---------- سجل الحضور التاريخي ----------
   const riyadh = (day: Date, h: number, m: number) => new Date(day.getTime() + ((h - 3) * 60 + m) * 60_000);
   const absentStreakStudent = placements[3].id; // حالة حرجة تجريبية
@@ -416,6 +447,7 @@ async function main() {
   console.log("   مشرف أكاديمي:          academic1@qu.edu.sa");
   console.log("   مشرف ميداني:           field1@example.sa");
   console.log("   طالب:                  441100001@qu.edu.sa");
+  console.log("   طالب (محاكاة):         441100025@qu.edu.sa · 441100026@qu.edu.sa");
 }
 
 main()

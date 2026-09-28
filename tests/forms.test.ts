@@ -167,8 +167,8 @@ test("schemas: قواعد الرفع الشرطية", () => {
 test("privacy: إخفاء رقم الملف الطبي لغير الطالب والمشرف المؤسسي", () => {
   assert.equal(maskIdentifier("MRN-2026-8841"), "••••••••••841");
   const data = { medicalFileNumber: "778812", summary: "x" };
-  assert.equal(applyPrivacy("QUICK_SITUATION", data, { isOwner: false, isFieldSupervisor: false }).medicalFileNumber, "•••812");
-  assert.equal(applyPrivacy("QUICK_SITUATION", data, { isOwner: false, isFieldSupervisor: true }).medicalFileNumber, "778812");
+  assert.equal(applyPrivacy("QUICK_SITUATION", data, { isOwner: false, isFieldSupervisor: false, isAcademicSupervisor: false }).medicalFileNumber, "•••812");
+  assert.equal(applyPrivacy("QUICK_SITUATION", data, { isOwner: false, isFieldSupervisor: true, isAcademicSupervisor: false }).medicalFileNumber, "778812");
 });
 
 test("canonicalJson: البصمة لا تتأثر بترتيب المفاتيح", () => {
@@ -212,4 +212,32 @@ test("catalog: عناوين العرض الرسمية", () => {
   assert.equal(formDisplayTitle("GROUP_PROGRAM", 2), "تقرير البرنامج الجماعي رقم (2)");
   assert.equal(formDisplayTitle("QUICK_SITUATION", 1, "MEDICAL"), "تسجيل الموقف السريع بالمستشفى");
   assert.equal(formDisplayTitle("COMMENCEMENT", 1), "مباشرة الطالب/ـة لمؤسسة التدريب الميداني");
+});
+
+// ------------------------------------------------------------ قرارات القسم (المرحلة 3)
+import { isKindApplicable, kindsForMode, policyFor } from "../src/lib/forms/catalog.ts";
+import { calculateFinalGrade } from "../src/lib/grading/engine.ts";
+
+test("privacy: المشرف الأكاديمي المسؤول يرى الرقم كاملاً، ويُحجب عن رئاسة القسم", () => {
+  const data = { medicalFileNumber: "778812" };
+  assert.equal(applyPrivacy("QUICK_SITUATION", data, { isOwner: false, isFieldSupervisor: false, isAcademicSupervisor: true }).medicalFileNumber, "778812");
+  assert.equal(applyPrivacy("QUICK_SITUATION", data, { isOwner: false, isFieldSupervisor: false, isAcademicSupervisor: false }).medicalFileNumber, "•••812");
+});
+
+test("simulation: استثناء نماذج المقر، ومسار أكاديمي مباشر", () => {
+  assert.equal(isKindApplicable("COMMENCEMENT", "SIMULATION"), false);
+  assert.equal(isKindApplicable("ORGANIZATION_PROFILE", "SIMULATION"), false);
+  assert.equal(isKindApplicable("CASE_STUDY", "SIMULATION"), true);
+  assert.deepEqual(kindsForMode("SIMULATION"), ["TRAINING_PLAN", "SKILLS_LOG", "GROUP_PROGRAM", "COMMUNITY_PROGRAM", "QUICK_SITUATION", "CASE_STUDY", "INTERVIEW", "READING"]);
+  const sim = policyFor("CASE_STUDY", "SIMULATION");
+  assert.equal(sim.fieldApproval, false);
+  assert.equal((nextState(sim, "SUBMITTED", "ACADEMIC_APPROVE") as { to: string }).to, "REVIEWED", "بلا توقيع مؤسسي");
+  assert.equal(policyFor("CASE_STUDY", "FIELD").fieldApproval, true, "الميداني دون تغيير");
+  assert.equal(can(academic, sim, st("SUBMITTED"), "ACADEMIC_APPROVE"), true);
+});
+
+test("grading: مكوّن التحضير للمحاكاة من السجلات الأسبوعية وحدها", () => {
+  const base = { weights: { fieldWeight: 40, academicWeight: 40, attendanceWeight: 20 }, fieldPercentage: 90, academicPercentage: 90, approvedMinutes: 0, requiredHours: 180, expectedWeeklyLogbooks: 10, submittedWeeklyLogbooks: 9, unexcusedAbsences: 0 };
+  assert.equal(calculateFinalGrade(base).attendanceComponent, 9, "الميداني: الساعات صفر تُخفّض المكوّن");
+  assert.equal(calculateFinalGrade({ ...base, hoursApplicable: false }).attendanceComponent, 18, "المحاكاة: 0.9 × 20");
 });
