@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { INSTITUTION } from "@/lib/labels";
+import { LOGO } from "@/lib/brand";
 
 function LoginForm() {
   const router = useRouter();
@@ -46,13 +47,13 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-qu-green-800 p-10 text-white lg:flex">
-        <div className="absolute -left-24 -top-24 size-96 rounded-full border-[40px] border-qu-gold-500/20" />
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-qu-navy-800 p-10 text-white lg:flex">
+        <div className="absolute -left-24 -top-24 size-96 rounded-full border-[40px] border-qu-teal-500/20" />
         <div className="relative flex items-center gap-4">
-          <Image src="/brand/logo.svg" alt="" width={64} height={64} />
+          <div className="rounded-xl bg-white px-3 py-2"><Image src={LOGO.full} alt="جامعة القصيم" width={172} height={60} priority /></div>
           <div>
             <div className="text-lg font-bold">{INSTITUTION.university}</div>
-            <div className="text-sm text-qu-gold-100">{INSTITUTION.college}</div>
+            <div className="text-sm text-qu-teal-100">{INSTITUTION.college}</div>
           </div>
         </div>
         <div className="relative">
@@ -68,8 +69,8 @@ export default function LoginPage() {
       <div className="flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <div className="mb-8 flex flex-col items-center gap-3 text-center lg:hidden">
-            <Image src="/brand/logo.svg" alt="" width={72} height={72} />
-            <div className="font-bold text-qu-green-700">{INSTITUTION.unit}</div>
+            <Image src={LOGO.full} alt="جامعة القصيم" width={206} height={72} priority />
+            <div className="font-bold text-qu-navy-700">{INSTITUTION.unit}</div>
           </div>
           <h1 className="mb-1 text-2xl font-bold">تسجيل الدخول</h1>
           <p className="mb-6 text-sm text-muted-foreground">ادخل ببريدك الجامعي</p>

@@ -53,7 +53,7 @@ export function GradesManager({ termId, rows, weights }: { termId: string; rows:
           <Button disabled={pending || selected.size === 0} onClick={() => post("/api/grades/approve", { placementIds: [...selected], publish: true }, (j) => `تم اعتماد ونشر ${j.approved} نتيجة`)}>
             <ShieldCheck /> اعتماد المحدد ({selected.size})
           </Button>
-          <a className={buttonVariants({ variant: "gold" })} href={`/api/grades/export?termId=${termId}`}><Download /> كشف الدرجات</a>
+          <a className={buttonVariants({ variant: "teal" })} href={`/api/grades/export?termId=${termId}`}><Download /> كشف الدرجات</a>
         </div>
       </CardHeader>
       {msg && <p className={`mx-5 mb-3 rounded-md p-2 text-sm ${msg.ok ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-700"}`}>{msg.text}</p>}
@@ -88,7 +88,7 @@ export function GradesManager({ termId, rows, weights }: { termId: string; rows:
                     {r.status == null ? <Badge variant="muted">لم تُحتسب</Badge>
                       : r.status !== "CALCULATED" ? <Badge variant="success">معتمدة</Badge>
                       : r.missing.length ? <Badge variant="warning" title={r.missing.join("، ")}>ناقص: {r.missing.join("، ")}</Badge>
-                      : <Badge variant="gold">جاهزة للاعتماد</Badge>}
+                      : <Badge variant="teal">جاهزة للاعتماد</Badge>}
                   </TD>
                 </TR>
               );

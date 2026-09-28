@@ -6,6 +6,7 @@ import type { LetterType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { INSTITUTION, MAJOR_LABELS } from "@/lib/labels";
 import { formatDateAr, formatHijri } from "@/lib/time";
+import { BRAND } from "@/lib/brand";
 
 export const LETTER_TYPE_LABELS: Record<LetterType, string> = {
   REFERRAL: "خطاب توجيه متدرب",
@@ -41,7 +42,7 @@ export async function issueLetter(placementId: string, type: LetterType, issuedB
 }
 
 async function logoDataUri(): Promise<string> {
-  const file = process.env.LOGO_PATH ?? "public/brand/logo.svg";
+  const file = process.env.LOGO_PATH ?? "public/brand/qu-logo.png";
   const buf = await readFile(path.join(process.cwd(), file));
   const mime = file.endsWith(".png") ? "image/png" : file.endsWith(".jpg") ? "image/jpeg" : "image/svg+xml";
   return `data:${mime};base64,${buf.toString("base64")}`;
@@ -71,7 +72,7 @@ export async function renderLetterHtml(letterId: string, baseUrl: string, opts: 
   const isFemale = st.gender === "FEMALE";
   const studentWord = isFemale ? "الطالبة" : "الطالب";
   const verifyUrl = `${baseUrl}/verify/${letter.verificationCode}`;
-  const qr = await QRCode.toDataURL(verifyUrl, { margin: 0, width: 160, color: { dark: "#0b5537" } });
+  const qr = await QRCode.toDataURL(verifyUrl, { margin: 0, width: 160, color: { dark: BRAND.navy } });
   const logo = await logoDataUri();
   const addressee = p.organization.contactTitle ?? "سعادة مدير";
 
@@ -104,25 +105,25 @@ export async function renderLetterHtml(letterId: string, baseUrl: string, opts: 
 <style>
   @page { size: A4; margin: 14mm 16mm; }
   * { box-sizing: border-box; }
-  body { font-family: "Amiri", "Traditional Arabic", serif; color: #1d2320; font-size: 15.5pt; line-height: 1.9; margin: 0; background: #eceeed; }
+  body { font-family: "Amiri", "Traditional Arabic", serif; color: ${BRAND.ink}; font-size: 15.5pt; line-height: 1.9; margin: 0; background: #eef1f4; }
   .page { background: #fff; width: 210mm; max-width: 100%; min-height: 297mm; margin: 12px auto; padding: 14mm 16mm; }
-  header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-bottom: 3px double #b8963e; padding-bottom: 8px; }
-  header .right { font-family: "IBM Plex Sans Arabic", sans-serif; font-size: 10.5pt; line-height: 1.7; color: #0b5537; font-weight: 600; }
+  header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-bottom: 3px double ${BRAND.teal}; padding-bottom: 8px; }
+  header .right { font-family: "IBM Plex Sans Arabic", sans-serif; font-size: 10.5pt; line-height: 1.7; color: ${BRAND.navy}; font-weight: 600; }
   header .left { font-family: "IBM Plex Sans Arabic", sans-serif; font-size: 10pt; text-align: left; line-height: 1.8; }
-  header img { width: 88px; height: 88px; }
-  h1 { text-align: center; color: #0b5537; font-size: 20pt; margin: 18px 0 6px; }
+  header img { height: 64px; width: auto; }
+  h1 { text-align: center; color: ${BRAND.navy}; font-size: 20pt; margin: 18px 0 6px; }
   .to { margin-top: 10px; font-weight: 700; }
   table { width: 100%; border-collapse: collapse; margin: 12px 0; font-family: "IBM Plex Sans Arabic", sans-serif; font-size: 11pt; }
-  td, th { border: 1px solid #c9cdcb; padding: 6px 10px; }
-  th { background: #ecf7f1; color: #0b5537; width: 28%; text-align: right; }
+  td, th { border: 1px solid #c9ccd1; padding: 6px 10px; }
+  th { background: ${BRAND.cellGray}; color: ${BRAND.navy}; width: 28%; text-align: right; }
   .signs { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 30px; text-align: center; }
-  .signs .role { color: #0b5537; font-weight: 700; }
-  .signs .line { margin-top: 42px; border-top: 1px dotted #7b817e; width: 70%; margin-inline: auto; }
+  .signs .role { color: ${BRAND.navy}; font-weight: 700; }
+  .signs .line { margin-top: 42px; border-top: 1px dotted #7b8088; width: 70%; margin-inline: auto; }
   footer { margin-top: 28px; display: flex; justify-content: space-between; align-items: end;
-    font-family: "IBM Plex Sans Arabic", sans-serif; font-size: 8.5pt; color: #4a4f4d; border-top: 1px solid #b8963e; padding-top: 6px; }
+    font-family: "IBM Plex Sans Arabic", sans-serif; font-size: 8.5pt; color: #4a4f57; border-top: 1px solid ${BRAND.teal}; padding-top: 6px; }
   footer img { width: 72px; height: 72px; }
   .toolbar { text-align: center; margin: 12px; font-family: "IBM Plex Sans Arabic", sans-serif; }
-  .toolbar button, .toolbar a { background: #0f6b45; color: #fff; border: 0; border-radius: 8px; padding: 8px 18px; font: inherit; cursor: pointer; text-decoration: none; margin: 0 4px; }
+  .toolbar button, .toolbar a { background: ${BRAND.navy}; color: #fff; border: 0; border-radius: 8px; padding: 8px 18px; font: inherit; cursor: pointer; text-decoration: none; margin: 0 4px; }
   @media print { body { background: #fff; } .page { margin: 0; padding: 0; width: auto; min-height: auto; } .toolbar { display: none; } footer { break-inside: avoid; } }
 </style>
 </head>

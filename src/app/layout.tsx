@@ -11,10 +11,10 @@ export const metadata: Metadata = {
   description: "منصة إدارة التدريب الميداني - قسم الاجتماع والخدمة الاجتماعية - جامعة القصيم",
   applicationName: "التدريب الميداني",
   appleWebApp: { capable: true, title: "التدريب الميداني", statusBarStyle: "default" },
-  icons: { icon: "/icon.svg", apple: "/icon.svg" },
+  icons: { icon: "/brand/emblem-64.png", apple: "/brand/emblem-192.png" },
 };
 
-export const viewport: Viewport = { themeColor: "#0f6b45", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#0f486e", width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

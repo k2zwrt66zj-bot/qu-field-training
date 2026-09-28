@@ -262,7 +262,7 @@ export function GpsCheckIn() {
             ) : (
               <Button
                 size="lg"
-                variant={checkedIn ? "gold" : "default"}
+                variant={checkedIn ? "teal" : "default"}
                 className="h-16 w-full text-lg"
                 disabled={busy}
                 onClick={() => act(checkedIn ? "check-out" : "check-in")}

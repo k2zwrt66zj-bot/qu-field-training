@@ -111,7 +111,7 @@ export function ReportForm({ id, template, initialTitle, initialContent }: { id:
         {tpl.sections.map((section, si) => (
           <Card key={section.title}>
             <CardHeader>
-              <CardTitle><span className="text-qu-gold-600">{si + 1}.</span> {section.title}</CardTitle>
+              <CardTitle><span className="text-qu-teal-700">{si + 1}.</span> {section.title}</CardTitle>
               {section.description && <CardDescription>{section.description}</CardDescription>}
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">

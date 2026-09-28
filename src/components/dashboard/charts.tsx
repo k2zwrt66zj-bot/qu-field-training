@@ -1,12 +1,17 @@
 "use client";
 import { Bar, BarChart, CartesianGrid, LabelList, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-// ألوان الفئات (هوية الجامعة) - تم التحقق من تمايزها لعمى الألوان
-const CAT = { green: "#0f6b45", gold: "#b8963e" };
+import { CHART_CATEGORICAL } from "@/lib/brand";
+
+// ألوان الفئات (الهوية الرسمية) — مُتحقق منها بأداة فحص عمى الألوان
+const CAT = { primary: CHART_CATEGORICAL[0], secondary: CHART_CATEGORICAL[1] };
 // ألوان الحالة محجوزة للحالة فقط (حاضر/متأخر/غائب) وتظهر دائماً مع وسيلة إيضاح
 const STATUS = { PRESENT: "#15803d", LATE: "#d97706", ABSENT: "#dc2626" };
 const AXIS = { fontSize: 12, fill: "hsl(150 3% 42%)" };
 const GRID = "hsl(150 5% 90%)";
+
+// نص وسيلة الإيضاح بلون النص لا بلون السلسلة (المربع الملون يحمل الهوية)
+const legendText = (value: string) => <span style={{ color: "hsl(var(--foreground))" }}>{value}</span>;
 
 const tooltipStyle = {
   contentStyle: { direction: "rtl" as const, borderRadius: 8, border: "1px solid hsl(150 5% 86%)", fontSize: 12 },
@@ -26,7 +31,7 @@ export function AttendanceTrendChart({ data }: { data: { date: string; PRESENT: 
         <XAxis dataKey="date" tickFormatter={dayLabel} tick={AXIS} axisLine={false} tickLine={false} reversed />
         <YAxis tick={AXIS} axisLine={false} tickLine={false} allowDecimals={false} orientation="right" width={32} />
         <Tooltip {...tooltipStyle} labelFormatter={(l) => dayLabel(String(l))} />
-        <Legend wrapperStyle={{ fontSize: 12 }} />
+        <Legend wrapperStyle={{ fontSize: 12 }} formatter={legendText} />
         <Bar dataKey="PRESENT" name="حاضر" stackId="a" fill={STATUS.PRESENT} stroke="#fff" strokeWidth={1} />
         <Bar dataKey="LATE" name="متأخر" stackId="a" fill={STATUS.LATE} stroke="#fff" strokeWidth={1} />
         <Bar dataKey="ABSENT" name="غائب" stackId="a" fill={STATUS.ABSENT} stroke="#fff" strokeWidth={1} radius={[4, 4, 0, 0]} />
@@ -44,11 +49,11 @@ export function MajorGenderChart({ data }: { data: { major: string; طلاب: nu
         <XAxis dataKey="major" tick={AXIS} axisLine={false} tickLine={false} reversed />
         <YAxis tick={AXIS} axisLine={false} tickLine={false} allowDecimals={false} orientation="right" width={32} />
         <Tooltip {...tooltipStyle} />
-        <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Bar dataKey="طلاب" fill={CAT.green} radius={[4, 4, 0, 0]} maxBarSize={48}>
+        <Legend wrapperStyle={{ fontSize: 12 }} formatter={legendText} />
+        <Bar dataKey="طلاب" fill={CAT.primary} radius={[4, 4, 0, 0]} maxBarSize={48}>
           <LabelList dataKey="طلاب" position="top" style={{ fontSize: 12, fill: "hsl(150 6% 13%)" }} />
         </Bar>
-        <Bar dataKey="طالبات" fill={CAT.gold} radius={[4, 4, 0, 0]} maxBarSize={48}>
+        <Bar dataKey="طالبات" fill={CAT.secondary} radius={[4, 4, 0, 0]} maxBarSize={48}>
           <LabelList dataKey="طالبات" position="top" style={{ fontSize: 12, fill: "hsl(150 6% 13%)" }} />
         </Bar>
       </BarChart>
@@ -68,7 +73,7 @@ export function HorizontalBarChart({ data, dataKey, labelKey }: { data: Record<s
           <li key={String(d[labelKey])} className="group grid grid-cols-[110px_1fr_28px] items-center gap-2 text-xs" title={`${d[labelKey]}: ${v}`}>
             <span className="truncate text-muted-foreground">{d[labelKey]}</span>
             <span className="h-5 rounded-s-none rounded-e bg-muted/60">
-              <span className="block h-full rounded-e transition-opacity group-hover:opacity-80" style={{ width: `${(v / max) * 100}%`, background: CAT.green }} />
+              <span className="block h-full rounded-e transition-opacity group-hover:opacity-80" style={{ width: `${(v / max) * 100}%`, background: CAT.primary }} />
             </span>
             <span className="font-semibold tabular-nums">{v}</span>
           </li>
@@ -88,7 +93,7 @@ export function GradeDistributionChart({ data }: { data: { grade: string; count:
         <XAxis dataKey="grade" tick={{ ...AXIS, direction: "ltr" }} axisLine={false} tickLine={false} reversed />
         <YAxis tick={AXIS} axisLine={false} tickLine={false} allowDecimals={false} orientation="right" width={32} />
         <Tooltip {...tooltipStyle} />
-        <Bar dataKey="count" name="عدد الطلاب" fill={CAT.green} radius={[4, 4, 0, 0]} maxBarSize={40}>
+        <Bar dataKey="count" name="عدد الطلاب" fill={CAT.primary} radius={[4, 4, 0, 0]} maxBarSize={40}>
           <LabelList dataKey="count" position="top" style={{ fontSize: 12, fill: "hsl(150 6% 13%)" }} />
         </Bar>
       </BarChart>

@@ -67,7 +67,7 @@ export default async function FieldLogbooksPage() {
             <CardContent className="grid gap-4 lg:grid-cols-[1fr_360px]">
               <dl className="space-y-3 text-sm">
                 {FIELDS.filter(([k]) => l[k]).map(([k, label]) => (
-                  <div key={k}><dt className="font-semibold text-qu-green-700">{label}</dt><dd className="whitespace-pre-line text-muted-foreground">{l[k]}</dd></div>
+                  <div key={k}><dt className="font-semibold text-qu-navy-700">{label}</dt><dd className="whitespace-pre-line text-muted-foreground">{l[k]}</dd></div>
                 ))}
               </dl>
               <LogbookSigning id={l.id} />

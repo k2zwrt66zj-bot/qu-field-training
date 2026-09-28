@@ -118,7 +118,7 @@ export function EvaluationForm({ placementId, backHref }: { placementId: string;
             <Card key={section}>
               <CardHeader className="flex-row items-center justify-between space-y-0">
                 <CardTitle>{section}</CardTitle>
-                <Badge variant="gold">{secTotal} / {secMax}</Badge>
+                <Badge variant="teal">{secTotal} / {secMax}</Badge>
               </CardHeader>
               <CardContent className="divide-y">
                 {items.map((c) => (

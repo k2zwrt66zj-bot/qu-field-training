@@ -29,7 +29,7 @@ export default async function TrainingHeadDashboard() {
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <StatCard label="متدربون على رأس التدريب" value={k.active} icon={Users} />
         <StatCard label="حاضرون اليوم" value={k.presentToday} hint={`منهم ${k.lateToday} متأخر`} icon={UserCheck} tone="success" />
-        <StatCard label="لم يحضّروا بعد" value={k.notYet} icon={AlarmClock} tone="gold" />
+        <StatCard label="لم يحضّروا بعد" value={k.notYet} icon={AlarmClock} tone="teal" />
         <StatCard label="بانتظار اعتماد المشرف" value={k.pendingApprovals} icon={ClipboardCheck} tone="warning" />
         <StatCard label="اشتباه تحضير وهمي" value={k.suspiciousOpen} icon={ShieldAlert} tone={k.suspiciousOpen ? "danger" : "default"} />
         <StatCard label="تنبيهات حرجة" value={k.criticalAlerts} icon={CircleAlert} tone={k.criticalAlerts ? "danger" : "default"} />

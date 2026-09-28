@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="شعار مؤقت - استبدله بالشعار الرسمي لجامعة القصيم">
-  <!-- شعار مؤقت (Placeholder). ضع الشعار الرسمي في public/brand/logo.png واضبط LOGO_PATH -->
-  <circle cx="60" cy="60" r="56" fill="#0f6b45"/>
-  <circle cx="60" cy="60" r="48" fill="none" stroke="#b8963e" stroke-width="4"/>
-  <path d="M60 30 C 50 45, 50 55, 60 62 C 70 55, 70 45, 60 30 Z" fill="#b8963e"/>
-  <path d="M34 70 Q 60 58 60 88 Q 60 58 86 70 L 86 86 Q 60 76 60 94 Q 60 76 34 86 Z" fill="#ffffff"/>
-</svg>

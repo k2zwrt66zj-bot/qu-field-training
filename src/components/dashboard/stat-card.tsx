@@ -13,11 +13,11 @@ export function StatCard({
   value: string | number;
   hint?: string;
   icon: LucideIcon;
-  tone?: "default" | "gold" | "warning" | "danger" | "success";
+  tone?: "default" | "teal" | "warning" | "danger" | "success";
 }) {
   const tones = {
     default: "bg-primary/10 text-primary",
-    gold: "bg-secondary/15 text-qu-gold-600",
+    teal: "bg-qu-teal-50 text-qu-teal-700",
     warning: "bg-amber-100 text-amber-700",
     danger: "bg-red-100 text-red-700",
     success: "bg-emerald-100 text-emerald-700",

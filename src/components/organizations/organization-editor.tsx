@@ -131,7 +131,7 @@ export function OrganizationEditor({
     <div className="space-y-6">
       {/* الموقع والنطاق */}
       <section className="space-y-3">
-        <h3 className="font-semibold text-qu-green-700">الموقع الجغرافي ونطاق التحضير</h3>
+        <h3 className="font-semibold text-qu-navy-700">الموقع الجغرافي ونطاق التحضير</h3>
         <p className="text-xs text-muted-foreground">انقر على الخريطة أو اسحب الدبوس إلى مدخل المبنى. استخدم طبقة «قمر صناعي» من زر الطبقات لرؤية المباني بدقة.</p>
         <div className="grid gap-2 md:grid-cols-[1fr_auto_auto]">
           <Input value={link} onChange={(e) => setLink(e.target.value)} dir="ltr" placeholder="الصق رابط خرائط Google أو الإحداثيات: 26.3415, 43.9632" aria-label="رابط الخرائط" />
@@ -148,7 +148,7 @@ export function OrganizationEditor({
           {field(
             "geofenceRadius",
             `نصف قطر النطاق: ${v.geofenceRadius} م`,
-            <input id="geofenceRadius" type="range" min={30} max={500} step={10} value={v.geofenceRadius} onChange={(e) => set("geofenceRadius", Number(e.target.value))} className="w-full accent-[#0f6b45]" />
+            <input id="geofenceRadius" type="range" min={30} max={500} step={10} value={v.geofenceRadius} onChange={(e) => set("geofenceRadius", Number(e.target.value))} className="w-full accent-[#0f486e]" />
           )}
         </div>
         {moved && activeTrainees > 0 && (
@@ -161,7 +161,7 @@ export function OrganizationEditor({
 
       {/* البيانات الأساسية */}
       <section className="grid gap-3 md:grid-cols-2">
-        <h3 className="font-semibold text-qu-green-700 md:col-span-2">بيانات الجهة</h3>
+        <h3 className="font-semibold text-qu-navy-700 md:col-span-2">بيانات الجهة</h3>
         {field("name", "اسم الجهة *", <Input id="name" value={v.name} onChange={(e) => set("name", e.target.value)} />, "md:col-span-2")}
         {field("category", "التصنيف", (
           <Select id="category" value={v.category} onChange={(e) => set("category", e.target.value as OrgFormValues["category"])}>
@@ -176,7 +176,7 @@ export function OrganizationEditor({
 
       {/* الاستيعاب */}
       <section className="grid gap-3 md:grid-cols-4">
-        <h3 className="font-semibold text-qu-green-700 md:col-span-4">الاستيعاب والتخصصات</h3>
+        <h3 className="font-semibold text-qu-navy-700 md:col-span-4">الاستيعاب والتخصصات</h3>
         {field("genderScope", "تستقبل", (
           <Select id="genderScope" value={v.genderScope} onChange={(e) => {
             const g = e.target.value as OrgFormValues["genderScope"];
@@ -209,7 +209,7 @@ export function OrganizationEditor({
 
       {/* التواصل */}
       <section className="grid gap-3 md:grid-cols-2">
-        <h3 className="font-semibold text-qu-green-700 md:col-span-2">التواصل والخطابات</h3>
+        <h3 className="font-semibold text-qu-navy-700 md:col-span-2">التواصل والخطابات</h3>
         {field("contactTitle", "صيغة المخاطبة في الخطاب", (
           <Select id="contactTitle" value={v.contactTitle} onChange={(e) => set("contactTitle", e.target.value)}>
             {["سعادة مدير", "سعادة مديرة", "سعادة رئيس", "سعادة رئيسة", "سعادة المدير العام", "سعادة المشرف على"].map((t) => <option key={t}>{t}</option>)}

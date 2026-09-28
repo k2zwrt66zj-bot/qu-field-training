@@ -3,6 +3,7 @@ import "leaflet/dist/leaflet.css";
 import { Circle, CircleMarker, MapContainer, TileLayer, Tooltip, useMap } from "react-leaflet";
 import { useEffect } from "react";
 import type { LatLngBoundsExpression } from "leaflet";
+import { BRAND } from "@/lib/brand";
 
 export interface GeoMapProps {
   center: { lat: number; lng: number };
@@ -33,10 +34,10 @@ export default function GeoMap({ center, radius, orgName, user, inside }: GeoMap
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <Circle center={[center.lat, center.lng]} radius={radius} pathOptions={{ color: "#0f6b45", fillColor: "#138a55", fillOpacity: 0.15, weight: 2 }}>
+      <Circle center={[center.lat, center.lng]} radius={radius} pathOptions={{ color: BRAND.navy, fillColor: BRAND.teal, fillOpacity: 0.15, weight: 2 }}>
         <Tooltip direction="top">{orgName}</Tooltip>
       </Circle>
-      <CircleMarker center={[center.lat, center.lng]} radius={5} pathOptions={{ color: "#b8963e", fillColor: "#b8963e", fillOpacity: 1 }} />
+      <CircleMarker center={[center.lat, center.lng]} radius={5} pathOptions={{ color: BRAND.teal, fillColor: BRAND.teal, fillOpacity: 1 }} />
       {user && (
         <>
           <Circle center={[user.lat, user.lng]} radius={user.accuracy} pathOptions={{ color: "#2563eb", fillOpacity: 0.08, weight: 1, dashArray: "4" }} />

@@ -3,6 +3,7 @@ import type { ReportTemplate } from "@prisma/client";
 import { REPORT_TEMPLATES, type ReportContent } from "@/lib/report-templates";
 import { INSTITUTION, MAJOR_LABELS } from "@/lib/labels";
 import { formatDateAr } from "@/lib/time";
+import { LOGO } from "@/lib/brand";
 
 interface Props {
   template: ReportTemplate;
@@ -27,19 +28,19 @@ export function ReportView({ template, title, content, student, organization, te
   const tpl = REPORT_TEMPLATES[template];
   return (
     <article className="report-print space-y-6 rounded-xl border bg-card p-6 text-sm leading-relaxed md:p-8">
-      <header className="flex items-center justify-between gap-4 border-b-2 border-double border-qu-gold-500 pb-4">
-        <div className="text-xs font-semibold leading-6 text-qu-green-700">
+      <header className="flex items-center justify-between gap-4 border-b-2 border-double border-qu-teal-500 pb-4">
+        <div className="text-xs font-semibold leading-6 text-qu-navy-700">
           {INSTITUTION.university}<br />{INSTITUTION.college}<br />{INSTITUTION.department}
         </div>
-        <Image src="/brand/logo.svg" alt="" width={64} height={64} />
+        <Image src={LOGO.full} alt="جامعة القصيم" width={172} height={60} />
         <div className="text-left text-xs leading-6 text-muted-foreground">
           {INSTITUTION.unit}<br />{term}<br />{submittedAt ? `رُفع: ${formatDateAr(submittedAt)}` : "مسودة"}
         </div>
       </header>
 
       <div className="text-center">
-        <div className="text-sm text-qu-gold-600">{tpl.title}</div>
-        <h1 className="mt-1 text-xl font-bold text-qu-green-700">{title}</h1>
+        <div className="text-sm text-qu-teal-700">{tpl.title}</div>
+        <h1 className="mt-1 text-xl font-bold text-qu-navy-700">{title}</h1>
       </div>
 
       <dl className="grid grid-cols-2 gap-x-6 gap-y-1 rounded-lg bg-muted/50 p-3 text-xs md:grid-cols-4">
@@ -51,7 +52,7 @@ export function ReportView({ template, title, content, student, organization, te
 
       {tpl.sections.map((s, si) => (
         <section key={s.title} className="break-inside-avoid-page space-y-3">
-          <h2 className="border-b pb-1 text-base font-bold text-qu-green-700"><span className="text-qu-gold-600">{si + 1}.</span> {s.title}</h2>
+          <h2 className="border-b pb-1 text-base font-bold text-qu-navy-700"><span className="text-qu-teal-700">{si + 1}.</span> {s.title}</h2>
           <dl className="grid gap-x-6 gap-y-3 md:grid-cols-2">
             {s.fields.map((f) => {
               const v = content[f.key];
@@ -62,7 +63,7 @@ export function ReportView({ template, title, content, student, organization, te
                     <dt className="mb-1 font-semibold">{f.label}</dt>
                     <dd className="overflow-x-auto">
                       <table className="w-full border-collapse text-xs">
-                        <thead><tr>{f.columns.map((c) => <th key={c.key} className="border bg-qu-green-50 p-1.5 text-start text-qu-green-800">{c.label}</th>)}</tr></thead>
+                        <thead><tr>{f.columns.map((c) => <th key={c.key} className="border bg-qu-navy-50 p-1.5 text-start text-qu-navy-800">{c.label}</th>)}</tr></thead>
                         <tbody>
                           {rows.length === 0 && <tr><td colSpan={f.columns.length} className="border p-2 text-center text-muted-foreground">—</td></tr>}
                           {rows.map((r, i) => <tr key={i}>{f.columns.map((c) => <td key={c.key} className="border p-1.5 align-top">{fmtValue(r[c.key], c.type)}</td>)}</tr>)}

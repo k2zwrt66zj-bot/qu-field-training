@@ -106,7 +106,7 @@ export function CriteriaEditor({ termId, type }: { termId: string; type: "FIELD"
             {rows.map((r, i) => {
               const newSection = i === 0 || rows[i - 1].section !== r.section;
               return (
-                <tr key={r.key} className={cn("border-t", newSection && i > 0 && "border-t-2 border-t-qu-gold-100")}>
+                <tr key={r.key} className={cn("border-t", newSection && i > 0 && "border-t-2 border-t-qu-teal-100")}>
                   <td className="p-2 text-center text-xs text-muted-foreground">{i + 1}</td>
                   <td className="p-1.5"><Input disabled={!!locked} list={`sections-${type}`} value={r.section} onChange={(e) => update(r.key, { section: e.target.value })} aria-label={`محور البند ${i + 1}`} /></td>
                   <td className="p-1.5"><Input disabled={!!locked} value={r.label} onChange={(e) => update(r.key, { label: e.target.value })} aria-label={`نص البند ${i + 1}`} /></td>

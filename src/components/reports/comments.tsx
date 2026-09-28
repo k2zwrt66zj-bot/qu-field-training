@@ -7,16 +7,16 @@ export function ReportComments({ field, academic, score }: { field?: string | nu
     <div className="space-y-2 print:hidden">
       {field && <Note who="المشرف الميداني" text={field} />}
       {academic && <Note who="المشرف الأكاديمي" text={academic} />}
-      {score != null && <p className="rounded-lg bg-qu-gold-50 p-3 text-sm">الدرجة الاسترشادية من المشرف الأكاديمي: <b>{score} / 100</b></p>}
+      {score != null && <p className="rounded-lg bg-qu-teal-50 p-3 text-sm">الدرجة الاسترشادية من المشرف الأكاديمي: <b>{score} / 100</b></p>}
     </div>
   );
 }
 
 function Note({ who, text }: { who: string; text: string }) {
   return (
-    <div className="flex gap-2 rounded-lg border-s-4 border-qu-gold-500 bg-muted/60 p-3 text-sm">
-      <MessageSquareText className="mt-0.5 size-4 shrink-0 text-qu-gold-600" />
-      <div><div className="text-xs font-semibold text-qu-gold-600">ملاحظة {who}</div><p className="whitespace-pre-line">{text}</p></div>
+    <div className="flex gap-2 rounded-lg border-s-4 border-qu-teal-500 bg-muted/60 p-3 text-sm">
+      <MessageSquareText className="mt-0.5 size-4 shrink-0 text-qu-teal-700" />
+      <div><div className="text-xs font-semibold text-qu-teal-700">ملاحظة {who}</div><p className="whitespace-pre-line">{text}</p></div>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import type { Config } from "tailwindcss";
 
-// الهوية البصرية لجامعة القصيم: الأخضر والذهبي والرمادي
-// (عدّل القيم الدقيقة وفق دليل الهوية الرسمي للجامعة)
+// الهوية البصرية الرسمية لجامعة القصيم: الكحلي والفيروزي (انظر src/lib/brand.ts)
 const config: Config = {
   darkMode: "class",
   content: ["./src/**/*.{ts,tsx}"],
@@ -24,9 +23,11 @@ const config: Config = {
         accent: { DEFAULT: "hsl(var(--accent))", foreground: "hsl(var(--accent-foreground))" },
         card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))" },
         qu: {
-          green: { 50: "#ecf7f1", 100: "#d2ecdf", 500: "#138a55", 600: "#0f6b45", 700: "#0b5537", 800: "#08412a", 900: "#052c1d" },
-          gold: { 50: "#faf5e9", 100: "#f2e6c4", 400: "#d1b161", 500: "#b8963e", 600: "#9a7a2c" },
-          gray: { 50: "#f6f7f7", 100: "#eceeed", 300: "#c9cdcb", 500: "#7b817e", 700: "#4a4f4d", 900: "#222524" },
+          // 700 = الكحلي الرسمي #0F486E
+          navy: { 50: "#eef4f9", 100: "#d6e4ef", 200: "#afcadf", 500: "#1b6597", 600: "#145782", 700: "#0f486e", 800: "#0b3653", 900: "#072438" },
+          // 400/500 = الفيروزي الرسمي (زخرفي)، 700 = للنصوص والأزرار (تباين 5:1)
+          teal: { 50: "#e8f8f8", 100: "#c7eeef", 300: "#6fd8d0", 400: "#18c5b8", 500: "#17afb2", 600: "#0d89a8", 700: "#0b7a93", 800: "#085c70" },
+          gray: { 50: "#f7f8f9", 100: "#f2f2f2", 300: "#c9ccd1", 500: "#7b8088", 700: "#4a4f57", 900: "#1d2330" },
         },
       },
       borderRadius: { lg: "var(--radius)", md: "calc(var(--radius) - 2px)", sm: "calc(var(--radius) - 4px)" },

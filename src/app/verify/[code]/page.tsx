@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { INSTITUTION } from "@/lib/labels";
 import { formatDateAr } from "@/lib/time";
 import { LETTER_TYPE_LABELS } from "@/server/letters";
+import { LOGO } from "@/lib/brand";
 
 export const metadata = { title: "التحقق من خطاب" };
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-md rounded-2xl border bg-card p-8 text-center shadow-sm">
-        <Image src="/brand/logo.svg" alt="" width={64} height={64} className="mx-auto" />
+        <Image src={LOGO.full} alt="جامعة القصيم" width={206} height={72} className="mx-auto" />
         <div className="mt-2 text-sm text-muted-foreground">{INSTITUTION.university} · {INSTITUTION.unit}</div>
         {valid ? (
           <>

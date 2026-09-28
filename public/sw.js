@@ -1,7 +1,7 @@
 // Service Worker بسيط: تخزين الواجهة (App Shell) للعمل بشبكة ضعيفة.
 // لا تُخزَّن طلبات الـ API إطلاقاً حتى لا يُعرض حضور قديم أو يُعاد إرسال تحضير.
-const CACHE = "qu-ft-v1";
-const SHELL = ["/", "/login", "/icon.svg", "/brand/logo.svg"];
+const CACHE = "qu-ft-v2";
+const SHELL = ["/", "/login", "/brand/emblem-192.png", "/brand/qu-logo.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

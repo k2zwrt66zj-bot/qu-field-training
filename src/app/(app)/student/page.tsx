@@ -72,8 +72,8 @@ export default async function StudentHome() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="الساعات المعتمدة" value={`${hours} / ${placement.requiredHours}`} icon={Clock} />
         <StatCard label="أيام الحضور" value={c("PRESENT") + c("LATE")} hint={`منها ${c("LATE")} تأخر`} icon={CalendarCheck} tone="success" />
-        <StatCard label="أيام الغياب" value={c("ABSENT")} hint={`${c("EXCUSED")} بعذر`} icon={CalendarX} tone={c("ABSENT") >= 3 ? "danger" : "gold"} />
-        <StatCard label="الدرجة النهائية" value={grade ? toNum(grade.total) : "—"} hint={grade ? `${grade.letterGrade} · ${LETTER_GRADE_AR[grade.letterGrade]}` : "تظهر بعد الاعتماد"} icon={Award} tone="gold" />
+        <StatCard label="أيام الغياب" value={c("ABSENT")} hint={`${c("EXCUSED")} بعذر`} icon={CalendarX} tone={c("ABSENT") >= 3 ? "danger" : "teal"} />
+        <StatCard label="الدرجة النهائية" value={grade ? toNum(grade.total) : "—"} hint={grade ? `${grade.letterGrade} · ${LETTER_GRADE_AR[grade.letterGrade]}` : "تظهر بعد الاعتماد"} icon={Award} tone="teal" />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">

@@ -6,7 +6,7 @@ const badgeVariants = cva("inline-flex items-center gap-1 whitespace-nowrap roun
   variants: {
     variant: {
       default: "border-transparent bg-primary/10 text-primary",
-      gold: "border-transparent bg-secondary/15 text-qu-gold-600 dark:text-qu-gold-400",
+      teal: "border-transparent bg-qu-teal-50 text-qu-teal-700 dark:bg-qu-teal-800/40 dark:text-qu-teal-300",
       success: "border-transparent bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
       warning: "border-transparent bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
       destructive: "border-transparent bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",

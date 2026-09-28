@@ -3,11 +3,12 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useMemo } from "react";
 import { Circle, LayersControl, MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import { BRAND } from "@/lib/brand";
 
 // علامة قابلة للسحب بدون ملفات صور (تجنب مشكلة أيقونات Leaflet مع الـ bundler)
 const pinIcon = L.divIcon({
   className: "",
-  html: `<svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg"><path d="M15 0C6.7 0 0 6.7 0 15c0 11 15 25 15 25s15-14 15-25C30 6.7 23.3 0 15 0z" fill="#0f6b45" stroke="#fff" stroke-width="2"/><circle cx="15" cy="15" r="5.5" fill="#b8963e"/></svg>`,
+  html: `<svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg"><path d="M15 0C6.7 0 0 6.7 0 15c0 11 15 25 15 25s15-14 15-25C30 6.7 23.3 0 15 0z" fill="${BRAND.navy}" stroke="#fff" stroke-width="2"/><circle cx="15" cy="15" r="5.5" fill="${BRAND.tealBright}"/></svg>`,
   iconSize: [30, 40],
   iconAnchor: [15, 40],
 });
@@ -57,7 +58,7 @@ export default function LocationPickerMap({ latitude, longitude, radius, onChang
           <TileLayer attribution="Tiles &copy; Esri" url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" maxZoom={19} />
         </LayersControl.BaseLayer>
       </LayersControl>
-      <Circle center={[latitude, longitude]} radius={radius} pathOptions={{ color: "#0f6b45", fillColor: "#138a55", fillOpacity: 0.15, weight: 2 }} />
+      <Circle center={[latitude, longitude]} radius={radius} pathOptions={{ color: BRAND.navy, fillColor: BRAND.teal, fillOpacity: 0.15, weight: 2 }} />
       <Marker position={[latitude, longitude]} draggable icon={pinIcon} eventHandlers={handlers} />
       <ClickToPlace onChange={place} />
       <Recenter latitude={latitude} longitude={longitude} />

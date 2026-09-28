@@ -37,11 +37,11 @@ export default async function ExecutiveDashboard() {
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <StatCard label="إجمالي المتدربين" value={k.total} hint={`طلاب ${k.male} · طالبات ${k.female}`} icon={Users} />
-        <StatCard label="متوسط إنجاز الساعات" value={pct(k.completion)} icon={Target} tone="gold" />
+        <StatCard label="متوسط إنجاز الساعات" value={pct(k.completion)} icon={Target} tone="teal" />
         <StatCard label="أنهوا التدريب" value={k.completed} icon={GraduationCap} tone="success" />
         <StatCard label="متوسط الدرجة النهائية" value={k.avgGrade == null ? "—" : fmt(k.avgGrade, 1)} hint="من 100" icon={Award} />
         <StatCard label="نسبة النجاح" value={pct(k.passRate)} icon={TrendingUp} tone="success" />
-        <StatCard label="جهات شريكة فاعلة" value={k.partners} icon={Building2} tone="gold" />
+        <StatCard label="جهات شريكة فاعلة" value={k.partners} icon={Building2} tone="teal" />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">

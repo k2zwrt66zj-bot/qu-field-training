@@ -1,10 +1,10 @@
 import type { DocumentStatus } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 
-export const REPORT_STATUS: Record<DocumentStatus, { label: string; variant: "muted" | "warning" | "gold" | "destructive" | "success" }> = {
+export const REPORT_STATUS: Record<DocumentStatus, { label: string; variant: "muted" | "warning" | "teal" | "destructive" | "success" }> = {
   DRAFT: { label: "مسودة", variant: "muted" },
   SUBMITTED: { label: "بانتظار توقيع المشرف الميداني", variant: "warning" },
-  SIGNED: { label: "موقّع — بانتظار المراجعة الأكاديمية", variant: "gold" },
+  SIGNED: { label: "موقّع — بانتظار المراجعة الأكاديمية", variant: "teal" },
   RETURNED: { label: "معاد للتعديل", variant: "destructive" },
   REVIEWED: { label: "معتمد أكاديمياً", variant: "success" },
 };

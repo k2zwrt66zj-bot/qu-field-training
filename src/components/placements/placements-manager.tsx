@@ -115,7 +115,7 @@ export function PlacementsManager({ termId, rows, unplacedCount }: { termId: str
             <Select value={letterType} onChange={(e) => setLetterType(e.target.value)} className="w-40">
               {LETTER_TYPES.map((t) => <option key={t.v} value={t.v}>{t.l}</option>)}
             </Select>
-            <Button variant="gold" disabled={pending || selected.size === 0} onClick={issue}>
+            <Button variant="teal" disabled={pending || selected.size === 0} onClick={issue}>
               <FileText /> إصدار ({selected.size})
             </Button>
           </div>
