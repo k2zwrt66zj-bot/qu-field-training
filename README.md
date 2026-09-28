@@ -79,7 +79,8 @@ npm run build && npm start
   ```
   على Vercel أضف في `vercel.json`: `{"crons":[{"path":"/api/cron/daily","schedule":"0 12 * * 0-4"}]}`. لاحظ أن Vercel Cron يرسل طلب GET، فأضف GET للمسار أو استخدم مجدولاً خارجياً.
 - **HTTPS إلزامي:** المتصفحات لا تسمح بتحديد الموقع إلا على HTTPS أو localhost.
-- **الشعار الرسمي:** ضع ملف الشعار في `public/brand/logo.png` واضبط `LOGO_PATH="public/brand/logo.png"`. الملف الحالي `logo.svg` شعار مؤقت فقط.
+- **الهوية الرسمية:** الشعار الرسمي في `public/brand/qu-logo.png` (مستخرج من ملف النماذج الرسمية)، وأيقونات التطبيق مستخرجة من رمزه. كل الألوان من مصدر واحد: `src/lib/brand.ts`.
+- **المرفقات:** `STORAGE_DRIVER=local` (قرص الخادم) أو `supabase` (حاوية خاصة، والمفتاح يبقى على الخادم فقط). انظر `.env.example`.
 
 ### الاختبارات والفحوص
 
@@ -100,8 +101,8 @@ qu-field-training/
 │   ├── seed.ts                  # بيانات تجريبية نسبية لتاريخ اليوم
 │   └── fixtures/                # توقيع نموذجي للبيانات التجريبية
 ├── public/
-│   ├── brand/logo.svg           # شعار مؤقت (استبدله بالرسمي)
-│   ├── icon.svg                 # أيقونة التطبيق (PWA)
+│   ├── brand/qu-logo.png        # الشعار الرسمي لجامعة القصيم
+│   ├── brand/emblem-*.png       # الرمز الشبكي (أيقونات التطبيق)
 │   └── sw.js                    # Service Worker (لا يخزّن طلبات الـ API)
 ├── src/
 │   ├── middleware.ts            # حماية المسارات حسب الدور (الطبقة الأولى)
@@ -197,6 +198,17 @@ qu-field-training/
 | `POST /api/reports/:id/sign` | مشرف ميداني | توقيع إلكتروني مع بصمة SHA-256 أو إعادة بملاحظة |
 | `POST /api/reports/:id/review` | مشرف أكاديمي | اعتماد بدرجة استرشادية (بعد التوقيع) أو إعادة |
 
+### النماذج الرسمية (المرحلة 2)
+المرجع الكامل وسير العمل في [`docs/official-forms-architecture.md`](docs/official-forms-architecture.md#9-مرجع-واجهة-النماذج-المرحلة-2).
+
+| المسار | الوصف |
+|---|---|
+| `GET/POST /api/forms` | قائمة النماذج / إنشاء نموذج بتعبئة مسبقة |
+| `GET/PATCH/DELETE /api/forms/:id` | عرض (مع `allowedActions`) / حفظ مسودة / حذف مسودة |
+| `POST /api/forms/:id/transition` | رفع، توقيع مؤسسي، اعتماد أكاديمي، إعادة |
+| `POST /api/forms/:id/attachments` · `GET /api/attachments/:id` | الشواهد (مع إزالة بيانات الموقع) |
+| `POST /api/organizations/:id/stamp` | ختم المؤسسة الرسمي |
+
 ### التوزيع والخطابات والسجلات
 | المسار | الدور | الوصف |
 |---|---|---|
@@ -253,7 +265,9 @@ qu-field-training/
 دليل «نماذج التدريب الميداني لمرحلة البكالوريوس ١٤٤٧هـ» مُنمذَج بالكامل في قاعدة البيانات (المرحلة 1). التفاصيل الكاملة، وهي خريطة النماذج والصلاحيات وسير العمل وخطة المراحل، في [`docs/official-forms-architecture.md`](docs/official-forms-architecture.md).
 
 ```bash
-npm run db:check-forms   # فحص تكاملي للعلاقات والقيود (داخل معاملة تُلغى)
+npm run db:check-forms    # فحص تكاملي للعلاقات والقيود (داخل معاملة تُلغى)
+npm run test:e2e:forms    # 78 فحصاً عبر HTTP (يتطلب خادماً يعمل + npm run db:seed)
+                          # أول مرة: npx playwright install chromium (أو اضبط CHROME_EXECUTABLE_PATH)
 ```
 
 ## 5) ما يلي في خارطة الطريق

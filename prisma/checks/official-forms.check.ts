@@ -25,10 +25,11 @@ async function expectUniqueViolation(tx: Prisma.TransactionClient, label: string
 
 async function main() {
   const placement = await prisma.placement.findFirstOrThrow({
-    where: { student: { major: "SOCIAL_WORK" } },
+    where: { student: { major: "SOCIAL_WORK" }, forms: { none: {} }, academicSupervisorId: { not: null }, fieldSupervisorId: { not: null } },
     include: { student: true, fieldSupervisor: true, academicSupervisor: true, organization: true },
   });
   const studentUserId = placement.student.userId;
+  const formsBefore = await prisma.fieldForm.count();
   const fieldUserId = placement.fieldSupervisor!.userId;
   const png = "data:image/png;base64,iVBORw0KGgo=";
 
@@ -172,8 +173,8 @@ async function main() {
       if (e !== ROLLBACK) throw e;
     });
 
-  const leftovers = await prisma.fieldForm.count();
-  assert.equal(leftovers, 0, "يجب ألا تبقى بيانات بعد الإلغاء");
+  // الثابت الصحيح: لا تغيّر في البيانات بعد الإلغاء (القاعدة قد تحتوي نماذج حقيقية)
+  assert.equal(await prisma.fieldForm.count(), formsBefore, "يجب ألا تبقى بيانات بعد الإلغاء");
   console.log(`\n✅ ${passed} فحصاً ناجحاً — وأُلغيت المعاملة (لم تُكتب أي بيانات)`);
 }
 

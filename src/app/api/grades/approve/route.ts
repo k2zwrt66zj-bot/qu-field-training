@@ -28,6 +28,8 @@ export const POST = handler(async (req: Request) => {
     }),
     prisma.evaluation.updateMany({ where: { placementId: { in: body.placementIds } }, data: { status: "LOCKED" } }),
     prisma.placement.updateMany({ where: { id: { in: body.placementIds } }, data: { status: "COMPLETED" } }),
+    // قفل النماذج الرسمية: لا تعديل ولا إعادة بعد اعتماد النتيجة
+    prisma.fieldForm.updateMany({ where: { placementId: { in: body.placementIds }, lockedAt: null }, data: { lockedAt: new Date() } }),
   ]);
   await audit(user.id, "grade.approve", "FinalGrade", undefined, body, clientIp(req));
   return NextResponse.json({ ok: true, approved: body.placementIds.length });
