@@ -17,6 +17,7 @@
     "db:studio": "prisma studio",
     "db:check-forms": "tsx prisma/checks/official-forms.check.ts",
     "test:e2e:forms": "node --env-file=.env tests/e2e/forms-api.e2e.mjs",
+    "test:e2e:ui": "node --env-file=.env tests/e2e/ui.e2e.mjs",
     "db:migrate-legacy": "tsx prisma/data-migrations/legacy-to-forms.ts"
   },
   "prisma": {
