@@ -72,11 +72,23 @@ export const REPORT_TEMPLATE_LABELS: Record<ReportTemplate, string> = {
 };
 
 /** بيانات الجهة الرسمية المستخدمة في الخطابات والترويسة */
+/** بيانات الجهة الرسمية كما وردت في ترويسة «نماذج التدريب الميداني لمرحلة البكالوريوس» */
 export const INSTITUTION = {
+  country: "المملكة العربية السعودية",
+  ministry: "وزارة التعليم",
   university: "جامعة القصيم",
-  college: "كلية اللغة العربية والدراسات الاجتماعية",
-  department: "قسم علم الاجتماع والخدمة الاجتماعية",
+  college: "كلية اللغات والعلوم الإنسانية",
+  department: "قسم الاجتماع والخدمة الاجتماعية",
   unit: "وحدة التدريب الميداني",
   departmentHead: "د. عمر النملة",
   trainingHead: "د. عبدالله التيجاني",
+  // الترويسة الإنجليزية كما في النماذج الرسمية
+  en: {
+    country: "Kingdom of Saudi Arabia",
+    ministry: "Ministry of Education",
+    university: "Qassim University",
+    college: "College of Languages & Social Sciences",
+    department: "Department of Sociology & Social Work",
+  },
+  formsEdition: "نماذج التدريب الميداني لمرحلة البكالوريوس ١٤٤٧ هـ – ٢٠٢٦ م",
 };

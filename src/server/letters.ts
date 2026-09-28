@@ -130,7 +130,7 @@ export async function renderLetterHtml(letterId: string, baseUrl: string, opts: 
 ${opts.printButton ? `<div class="toolbar"><button onclick="window.print()">طباعة / حفظ PDF</button><a href="/api/letters/${letter.id}/pdf">تنزيل PDF</a></div>` : ""}
 <div class="page">
   <header>
-    <div class="right">المملكة العربية السعودية<br/>${INSTITUTION.university}<br/>${INSTITUTION.college}<br/>${INSTITUTION.department}</div>
+    <div class="right">${INSTITUTION.country}<br/>${INSTITUTION.ministry}<br/>${INSTITUTION.university}<br/>${INSTITUTION.college}<br/>${INSTITUTION.department}</div>
     <img src="${logo}" alt="شعار جامعة القصيم" />
     <div class="left">الرقم: ${letter.serialNumber}<br/>التاريخ: ${formatHijri(letter.issuedAt)}<br/>الموافق: ${formatDateAr(letter.issuedAt)}</div>
   </header>

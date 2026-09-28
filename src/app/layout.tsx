@@ -8,7 +8,7 @@ const arabic = IBM_Plex_Sans_Arabic({ subsets: ["arabic", "latin"], weight: ["30
 
 export const metadata: Metadata = {
   title: { default: "التدريب الميداني | جامعة القصيم", template: "%s | التدريب الميداني" },
-  description: "منصة إدارة التدريب الميداني - قسم علم الاجتماع والخدمة الاجتماعية - جامعة القصيم",
+  description: "منصة إدارة التدريب الميداني - قسم الاجتماع والخدمة الاجتماعية - جامعة القصيم",
   applicationName: "التدريب الميداني",
   appleWebApp: { capable: true, title: "التدريب الميداني", statusBarStyle: "default" },
   icons: { icon: "/icon.svg", apple: "/icon.svg" },

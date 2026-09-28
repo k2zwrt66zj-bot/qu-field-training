@@ -198,7 +198,15 @@ model User {
   approvedGrades     FinalGrade[]       @relation("GradeApprover")
   reviewedReports    FieldReport[]      @relation("ReportReviewer")
   alerts             Alert[]
-  auditLogs          AuditLog[]
+
+  // النماذج الرسمية
+  createdForms          FieldForm[]     @relation("FormCreator")
+  fieldApprovedForms    FieldForm[]     @relation("FormFieldApprover")
+  academicApprovedForms FieldForm[]     @relation("FormAcademicApprover")
+  formComments          FormComment[]
+  uploadedAttachments   Attachment[]
+  formSignatures        FormSignature[] @relation("FormSignatureSigner")
+  auditLogs             AuditLog[]
 
   @@index([role])
 }
@@ -232,9 +240,10 @@ model FieldSupervisorProfile {
   jobTitle       String?
   department     String?
 
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization Organization @relation(fields: [organizationId], references: [id])
-  placements   Placement[]
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization     Organization      @relation(fields: [organizationId], references: [id])
+  placements       Placement[]
+  attendanceSheets AttendanceSheet[]
 }
 
 model AcademicSupervisorProfile {
@@ -243,9 +252,11 @@ model AcademicSupervisorProfile {
   academicRank String? // أستاذ / أستاذ مشارك / أستاذ مساعد / محاضر
   maxStudents  Int     @default(15)
 
-  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   placements Placement[]
   visits     SupervisionVisit[]
+  sections   CourseSection[]
+  meetings   SupervisionMeeting[]
 }
 
 // ---------------------------------------------------------------------
@@ -275,6 +286,8 @@ model AcademicTerm {
   preferences TrainingPreference[]
   placements  Placement[]
   criteria    EvaluationCriterion[]
+  sections    CourseSection[]
+  meetings    SupervisionMeeting[]
 }
 
 // ---------------------------------------------------------------------
@@ -282,32 +295,40 @@ model AcademicTerm {
 // ---------------------------------------------------------------------
 
 model Organization {
-  id             String      @id @default(cuid())
-  name           String
-  category       OrgCategory
-  city           String
-  address        String?
-  latitude       Float
-  longitude      Float
-  geofenceRadius Int         @default(100) // نصف قطر النطاق الجغرافي بالمتر
-  genderScope    GenderScope @default(BOTH)
-  acceptedMajors Major[]
-  capacityMale   Int         @default(0)
-  capacityFemale Int         @default(0)
-  contactName    String?
-  contactTitle   String? // المسمى الموجَّه إليه الخطاب: مدير / مديرة ...
-  contactPhone   String?
-  contactEmail   String?
-  workStartTime  String      @default("08:00") // HH:mm بتوقيت الرياض
-  workEndTime    String      @default("13:00")
-  isApproved     Boolean     @default(true)
-  notes          String?
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  id                 String      @id @default(cuid())
+  name               String
+  category           OrgCategory
+  city               String
+  address            String?
+  latitude           Float
+  longitude          Float
+  geofenceRadius     Int         @default(100) // نصف قطر النطاق الجغرافي بالمتر
+  genderScope        GenderScope @default(BOTH)
+  acceptedMajors     Major[]
+  capacityMale       Int         @default(0)
+  capacityFemale     Int         @default(0)
+  contactName        String?
+  contactTitle       String? // المسمى الموجَّه إليه الخطاب: مدير / مديرة ...
+  contactPhone       String?
+  contactEmail       String? // البريد الإلكتروني للمؤسسة
+  phone              String? // رقم هاتف المؤسسة (غير جوال المشرف)
+  directorName       String? // اسم مدير/ة المؤسسة (نموذج المباشرة وسجل الحضور)
+  // آخر قيم معتمدة من «التقرير التعريفي بالمؤسسة» — لإحصاءات القسم
+  socialWorkersCount Int?
+  beneficiariesCount Int?
+  workStartTime      String      @default("08:00") // HH:mm بتوقيت الرياض
+  workEndTime        String      @default("13:00")
+  isApproved         Boolean     @default(true)
+  notes              String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
 
-  supervisors FieldSupervisorProfile[]
-  placements  Placement[]
-  preferences TrainingPreference[]
+  supervisors      FieldSupervisorProfile[]
+  placements       Placement[]
+  preferences      TrainingPreference[]
+  attachments      Attachment[] // الختم الرسمي للمؤسسة (kind = STAMP)
+  meetings         SupervisionMeeting[]
+  attendanceSheets AttendanceSheet[]
 
   @@index([category])
   @@index([city])
@@ -347,28 +368,36 @@ model Placement {
   requiredHours        Int             @default(120)
   workDays             Int[]           @default([0, 1, 2, 3, 4]) // 0=الأحد ... 4=الخميس
   approvedMinutes      Int             @default(0) // مجموع الدقائق المعتمدة (مُحدَّث آلياً)
+  sectionId            String? // الشعبة (اسم المقرر، رقم الشعبة، رقم التدريب، المسار، محاكاة/ميداني)
+  shift                TrainingShift? // فترة التدريب: صباحية / مسائية (نموذج المباشرة)
+  commencedAt          DateTime?       @db.Date // تاريخ المباشرة المعتمد بعد توقيع نموذج المباشرة
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
 
+  section            CourseSection?             @relation(fields: [sectionId], references: [id])
   student            StudentProfile             @relation(fields: [studentId], references: [id])
   term               AcademicTerm               @relation(fields: [termId], references: [id])
   organization       Organization               @relation(fields: [organizationId], references: [id])
   fieldSupervisor    FieldSupervisorProfile?    @relation(fields: [fieldSupervisorId], references: [id])
   academicSupervisor AcademicSupervisorProfile? @relation(fields: [academicSupervisorId], references: [id])
 
-  letters     Letter[]
-  attendance  AttendanceRecord[]
-  attempts    AttendanceAttempt[]
-  logbooks    Logbook[]
-  reports     FieldReport[]
-  tasks       Task[]
-  notes       SupervisorNote[]
-  visits      SupervisionVisit[]
-  evaluations Evaluation[]
-  finalGrade  FinalGrade?
-  alerts      Alert[]
+  letters           Letter[]
+  attendance        AttendanceRecord[]
+  attempts          AttendanceAttempt[]
+  logbooks          Logbook[]
+  reports           FieldReport[]
+  tasks             Task[]
+  notes             SupervisorNote[]
+  visits            SupervisionVisit[]
+  evaluations       Evaluation[]
+  finalGrade        FinalGrade?
+  alerts            Alert[]
+  forms             FieldForm[]
+  meetingAttendance MeetingAttendance[]
+  secretaryOf       SupervisionMeeting[] @relation("MeetingSecretary")
 
   @@unique([studentId, termId])
+  @@index([sectionId])
   @@index([organizationId])
   @@index([fieldSupervisorId])
   @@index([academicSupervisorId])
@@ -428,11 +457,15 @@ model AttendanceRecord {
   riskFlags    String[]
   excuseNote   String?
 
+  // كشف الحضور والانصراف اليومي للمؤسسة الذي وقّعه المشرف المؤسسي
+  sheetId String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  placement  Placement @relation(fields: [placementId], references: [id], onDelete: Cascade)
-  approvedBy User?     @relation("AttendanceApprover", fields: [approvedById], references: [id])
+  placement  Placement        @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  approvedBy User?            @relation("AttendanceApprover", fields: [approvedById], references: [id])
+  sheet      AttendanceSheet? @relation(fields: [sheetId], references: [id], onDelete: SetNull)
 
   @@unique([placementId, date])
   @@index([date])
@@ -472,6 +505,7 @@ model AttendanceAttempt {
 //  السجلات والتقارير الميدانية
 // ---------------------------------------------------------------------
 
+/// ⚠️ قديم: يُستبدل بـ SkillsLog (نموذج تسجيل المهارات والمعارف الأسبوعية) — يُرحَّل في المرحلة 2
 model Logbook {
   id              String         @id @default(cuid())
   placementId     String
@@ -498,6 +532,7 @@ model Logbook {
   @@unique([placementId, type, periodStart])
 }
 
+/// ⚠️ قديم: يُستبدل بـ FieldForm — تُرحَّل قوالبه غير الرسمية إلى FieldForm(kind = CUSTOM) في المرحلة 2
 model FieldReport {
   id              String         @id @default(cuid())
   placementId     String
@@ -531,10 +566,11 @@ model Signature {
   ipAddress   String?
   signedAt    DateTime @default(now())
 
-  signer     User         @relation(fields: [signerId], references: [id])
-  logbook    Logbook?
-  report     FieldReport?
-  evaluation Evaluation?
+  signer        User           @relation(fields: [signerId], references: [id])
+  logbook       Logbook?
+  report        FieldReport?
+  evaluation    Evaluation?
+  formSignature FormSignature?
 }
 
 model Task {
@@ -698,4 +734,662 @@ model AuditLog {
 
   @@index([entity, entityId])
   @@index([createdAt])
+}
+
+// =====================================================================
+//  النماذج الرسمية للتدريب الميداني
+//  المرجع: «نماذج التدريب الميداني لمرحلة البكالوريوس ١٤٤٧هـ – ٢٠٢٦م»
+//  قسم الاجتماع والخدمة الاجتماعية — كلية اللغات والعلوم الإنسانية
+// ---------------------------------------------------------------------
+//  البنية: «مظروف» موحّد (FieldForm) يحمل سير العمل والتواقيع والمرفقات
+//  والملاحظات، ولكل نموذج جدول تفصيلي مُنمذَج بعلاقة 1:1.
+//  النماذج غير الفردية (الاجتماع الإشرافي، كشف الحضور) جداول مستقلة.
+// =====================================================================
+
+enum FormKind {
+  COMMENCEMENT // مباشرة الطالب/ـة لمؤسسة التدريب الميداني
+  ORGANIZATION_PROFILE // تقرير تعريفي بمؤسسة التدريب الميداني
+  TRAINING_PLAN // نموذج خطة التدريب الميداني
+  SKILLS_LOG // نموذج تسجيل المهارات والمعارف الأسبوعية
+  GROUP_PROGRAM // تقرير البرنامج الجماعي
+  COMMUNITY_PROGRAM // تقرير البرنامج المجتمعي
+  QUICK_SITUATION // تسجيل الموقف السريع (مدرسي / طبي)
+  CASE_STUDY // دراسة الحالة وفقاً لخطوات التدخل المهني
+  INTERVIEW // تسجيل المقابلة المهنية
+  READING // نموذج القراءات
+  CUSTOM // قوالب إضافية غير واردة في الدليل الرسمي (محتوى JSON)
+}
+
+enum TrainingMode {
+  FIELD // السجل المهني للتدريب الميداني
+  SIMULATION // السجل المهني للتدريب الميداني بالمحاكاة
+}
+
+enum TrainingShift {
+  MORNING // فترة صباحية
+  EVENING // فترة مسائية
+}
+
+enum SituationDomain {
+  SCHOOL // خاص بالمجال المدرسي
+  MEDICAL // خاص بالمجال الطبي
+}
+
+enum MedicalVisitType {
+  FIRST_VISIT // مراجع لأول مرة
+  INPATIENT // منوّم بالمستشفى
+  SURGERY // عمليات
+  FOLLOW_UP // مراجع كمتابعة
+  FAMILY_MEMBER // أحد أفراد أسرة المريض
+}
+
+enum CaseFinalOutcome {
+  POSITIVE_CHANGE // النجاح في إحداث التغيير وحل المشكلة بشكل إيجابي
+  NO_CHANGE // عدم إحداث تغيير وعدم استفادة العميل
+  DETERIORATED // تدهور الموقف الإشكالي بعد التدخل المهني
+}
+
+enum TerminationType {
+  PLANNED // إنهاء مخطط
+  UNPLANNED // إنهاء غير مخطط
+}
+
+enum FollowUpInterval {
+  CLOSE // على فترات زمنية متقاربة
+  SPACED // على فترات زمنية متباعدة
+}
+
+enum FollowUpPurpose {
+  SERVICE_EVALUATION // تقييم مستوى الخدمات لتعديل النماذج والأساليب العلاجية
+  COMMUNITY_ACCOUNTABILITY // إثبات للمجتمع مدى نجاح المؤسسة (تمويل / توسع)
+  CLIENT_ATTACHMENT // ربط العميل بالمؤسسة وإشعاره بأنه جزء مهم منها
+}
+
+enum FollowUpMethod {
+  PHONE_CALLS // المكالمات الهاتفية القصيرة
+  HOME_VISITS // الزيارات المنزلية للعملاء
+  MAILED_SURVEYS // إرسال الاستبيانات المكتوبة للعملاء
+}
+
+enum ReadingSourceType {
+  BOOK_CHAPTER // فصل في كتاب
+  JOURNAL_ARTICLE // بحث في مجلة علمية
+  CONFERENCE_PAPER // بحث في مؤتمر علمي
+}
+
+enum MeetingAttendanceStatus {
+  PRESENT // حاضر
+  ABSENT_EXCUSED // غياب بعذر
+  ABSENT_UNEXCUSED // غياب بدون عذر
+}
+
+enum SignatureSlot {
+  STUDENT // توقيع الطالب/ـة
+  FIELD_SUPERVISOR // توقيع المشرف المؤسسي
+  ORG_DIRECTOR // مدير المؤسسة: الختم والتوقيع
+  ACADEMIC_SUPERVISOR // المشرف الأكاديمي
+  TRAINING_HEAD // رئيس وحدة التدريب الميداني
+  MEETING_CHAIR // رئيس الاجتماع
+  MEETING_SECRETARY // أمين الاجتماع
+  MEETING_MEMBER // الأعضاء
+}
+
+enum AttachmentKind {
+  EVIDENCE // الصور والشواهد والأدلة
+  DOCUMENT // مستند داعم
+  STAMP // الختم الرسمي للمؤسسة
+}
+
+// ---------------------------------------------------------------------
+//  الشعبة: اسم المقرر، رقم الشعبة، «تدريب ميداني رقم ( )»، المسار
+// ---------------------------------------------------------------------
+model CourseSection {
+  id                   String       @id @default(cuid())
+  termId               String
+  courseCode           String? // رمز المقرر
+  courseName           String // اسم المقرر
+  sectionNumber        String // رقم الشعبة
+  trainingNumber       Int // تدريب ميداني رقم (1، 2 ...)
+  track                String? // المسار
+  mode                 TrainingMode @default(FIELD) // ميداني / بالمحاكاة (يحدد غلاف السجل المهني)
+  major                Major?
+  academicSupervisorId String?
+  createdAt            DateTime     @default(now())
+
+  term               AcademicTerm               @relation(fields: [termId], references: [id], onDelete: Cascade)
+  academicSupervisor AcademicSupervisorProfile? @relation(fields: [academicSupervisorId], references: [id])
+  placements         Placement[]
+  meetings           SupervisionMeeting[]
+
+  @@unique([termId, sectionNumber])
+}
+
+// ---------------------------------------------------------------------
+//  المظروف الموحّد لكل نماذج الطالب
+// ---------------------------------------------------------------------
+model FieldForm {
+  id          String         @id @default(cuid())
+  kind        FormKind
+  placementId String
+  /// رقم النموذج: «البرنامج رقم ( )»، «المقابلة رقم ( )»، «القراءة رقم ( )».
+  /// النماذج الفردية (المباشرة، التعريفي، الخطة) رقمها دائماً 1 فيمنع القيد الفريد تكرارها.
+  sequence    Int            @default(1)
+  title       String?
+  status      DocumentStatus @default(DRAFT) // DRAFT → SUBMITTED → SIGNED (مؤسسي) → REVIEWED (أكاديمي) | RETURNED
+
+  submittedAt          DateTime?
+  fieldApprovedAt      DateTime?
+  fieldApprovedById    String?
+  academicApprovedAt   DateTime?
+  academicApprovedById String?
+  academicScore        Decimal?  @db.Decimal(5, 2) // درجة استرشادية من 100
+  lockedAt             DateTime? // يُقفل بعد اعتماد الدرجة النهائية
+
+  // القوالب غير الرسمية فقط (kind = CUSTOM)
+  templateKey String?
+  data        Json?
+
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  placement        Placement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  createdBy        User      @relation("FormCreator", fields: [createdById], references: [id])
+  fieldApprover    User?     @relation("FormFieldApprover", fields: [fieldApprovedById], references: [id])
+  academicApprover User?     @relation("FormAcademicApprover", fields: [academicApprovedById], references: [id])
+
+  commencement        CommencementForm?
+  organizationProfile OrganizationProfileReport?
+  trainingPlan        TrainingPlan?
+  skillsLog           SkillsLog?
+  program             ProgramReport?
+  quickSituation      QuickSituation?
+  caseStudy           CaseStudy?
+  interview           InterviewRecord?
+  reading             ReadingRecord?
+
+  signatures  FormSignature[]
+  attachments Attachment[]
+  comments    FormComment[]
+
+  @@unique([placementId, kind, sequence])
+  @@index([placementId, kind])
+  @@index([status])
+}
+
+/// خانة توقيع في نموذج أو اجتماع أو كشف حضور — تربط التوقيع (الصورة + البصمة) بدور الموقِّع
+model FormSignature {
+  id           String        @id @default(cuid())
+  slot         SignatureSlot
+  signatureId  String        @unique
+  signerUserId String? // صاحب التوقيع إن كان مستخدماً في النظام (null لمدير المؤسسة إن وقّع على جهاز المشرف)
+  signerName   String // الاسم كما يُطبع تحت التوقيع
+  signerTitle  String?
+  withStamp    Boolean       @default(false) // «الختم والتوقيع» — يُطبع ختم المؤسسة المعتمد
+  createdAt    DateTime      @default(now())
+
+  formId    String?
+  meetingId String?
+  sheetId   String?
+
+  signature  Signature           @relation(fields: [signatureId], references: [id], onDelete: Cascade)
+  signerUser User?               @relation("FormSignatureSigner", fields: [signerUserId], references: [id])
+  form       FieldForm?          @relation(fields: [formId], references: [id], onDelete: Cascade)
+  meeting    SupervisionMeeting? @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  sheet      AttendanceSheet?    @relation(fields: [sheetId], references: [id], onDelete: Cascade)
+
+  @@unique([formId, slot]) // خانة واحدة لكل دور في النموذج
+  @@unique([meetingId, slot, signerUserId]) // الأعضاء في الاجتماع: توقيع لكل عضو
+  @@unique([sheetId, slot])
+}
+
+/// الصور والشواهد والأدلة + الختم الرسمي. الملف نفسه في التخزين (Supabase Storage / S3) ونحفظ مفتاحه وبصمته.
+model Attachment {
+  id             String         @id @default(cuid())
+  kind           AttachmentKind
+  formId         String?
+  organizationId String? // للختم الرسمي
+  uploadedById   String
+  fileName       String
+  mimeType       String
+  sizeBytes      Int
+  storageKey     String         @unique
+  sha256         String
+  caption        String?
+  createdAt      DateTime       @default(now())
+
+  form         FieldForm?    @relation(fields: [formId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  uploadedBy   User          @relation(fields: [uploadedById], references: [id])
+
+  @@index([formId])
+  @@index([organizationId, kind])
+}
+
+/// ملاحظات المراجعة (جولات الإعادة والتعديل) — بدلاً من حقل ملاحظة واحد لكل مشرف
+model FormComment {
+  id        String   @id @default(cuid())
+  formId    String
+  authorId  String
+  body      String
+  resolved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  form   FieldForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  author User      @relation(fields: [authorId], references: [id])
+
+  @@index([formId])
+}
+
+// ---------------------------------------------------------------------
+//  1) مباشرة الطالب/ـة لمؤسسة التدريب الميداني
+//     (بيانات الطالب والمشرفين والمؤسسة تُقرأ من الإسناد؛ نحفظ ما يُقرّ به فقط)
+// ---------------------------------------------------------------------
+model CommencementForm {
+  id                  String        @id @default(cuid())
+  formId              String        @unique
+  commencementDate    DateTime      @db.Date // تاريخ المباشرة
+  fixedTrainingDay    Int // يوم التدريب الثابت: 0 الأحد … 4 الخميس
+  shift               TrainingShift // فترة التدريب
+  supervisorMobile    String? // جوال المشرف المؤسسي (لقطة وقت التوقيع)
+  organizationEmail   String? // البريد الإلكتروني للمؤسسة (لقطة وقت التوقيع)
+  directorName        String? // اسم مدير المؤسسة (لقطة وقت التوقيع)
+  declarationAccepted Boolean       @default(false) // «أقر أنا الطالب/ـة … بأنني باشرت التدريب …»
+
+  form FieldForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------
+//  2) تقرير تعريفي بمؤسسة التدريب الميداني
+// ---------------------------------------------------------------------
+model OrganizationProfileReport {
+  id     String @id @default(cuid())
+  formId String @unique
+
+  // أولاً: البيانات الأولية (تُعبأ مسبقاً من دليل الجهات ويتحقق منها الطالب)
+  organizationName String
+  location         String? // مكان المؤسسة
+  contactNumbers   String? // أرقام التواصل
+  workField        String? // مجال عمل المؤسسة
+  officialHours    String? // أوقات الدوام الرسمي
+  trainingDays     String? // أيام التدريب الميداني بالمؤسسة
+
+  // ثانياً: بيانات الإشراف
+  directorName     String?
+  supervisorName   String?
+  supervisorMobile String?
+
+  // ثالثاً: الأهداف
+  goals String? @db.Text
+
+  // رابعاً: الهيكل التنظيمي
+  socialWorkersCount Int? // عدد الأخصائيين الاجتماعيين
+  beneficiariesCount Int? // عدد المستفيدين من خدمات المؤسسة
+  policies           String? @db.Text // السياسات واللوائح المنظمة للعمل
+
+  // خامساً: الخدمات
+  servicesOffered       String? @db.Text // الخدمات المقدمة
+  eligibilityConditions String? @db.Text // شروط الحصول على الخدمات
+  accessProcedures      String? @db.Text // إجراءات الحصول على الخدمات
+  beneficiaryGroups     String? @db.Text // الفئات المستفيدة
+
+  // سادساً: العلاقات بالمجتمع الخارجي
+  relatedOrganizations String? @db.Text // المؤسسات ذات العلاقة
+  communityPrograms    String? @db.Text // البرامج المقدمة للمجتمع المحلي
+
+  // سابعاً وثامناً
+  socialWorkerRoles String[] // أدوار الأخصائي الاجتماعي بالمؤسسة
+  studentNotes      String?  @db.Text // ملاحظات الطالب/ـة عن المؤسسة
+
+  form          FieldForm              @relation(fields: [formId], references: [id], onDelete: Cascade)
+  professionals OrgProfessionalGroup[]
+}
+
+/// «عدد المهنيين من التخصصات الأخرى وتصنيفهم»
+model OrgProfessionalGroup {
+  id        String @id @default(cuid())
+  profileId String
+  specialty String // التخصص (طبيب، أخصائي نفسي، معلم ...)
+  count     Int
+
+  profile OrganizationProfileReport @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------
+//  3) نموذج خطة التدريب الميداني
+// ---------------------------------------------------------------------
+model TrainingPlan {
+  id          String  @id @default(cuid())
+  formId      String  @unique
+  generalGoal String? @db.Text // الهدف العام
+
+  form  FieldForm          @relation(fields: [formId], references: [id], onDelete: Cascade)
+  weeks TrainingPlanWeek[]
+}
+
+model TrainingPlanWeek {
+  id          String @id @default(cuid())
+  planId      String
+  weekNumber  Int // الأسبوع
+  tasks       String @db.Text // المهام
+  responsible String // المسؤول عن أداء المهمة
+
+  plan       TrainingPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  skillsLogs SkillsLog[]
+
+  @@unique([planId, weekNumber])
+}
+
+// ---------------------------------------------------------------------
+//  4) نموذج تسجيل المهارات والمعارف الأسبوعية (لكل يوم تدريبي)
+// ---------------------------------------------------------------------
+model SkillsLog {
+  id                 String   @id @default(cuid())
+  formId             String   @unique
+  weekNumber         Int // عناصر خطة الأسبوع (رقم الأسبوع)
+  logDate            DateTime @db.Date // اليوم والتاريخ
+  planWeekId         String? // ربط اختياري بأسبوع الخطة لتعبئة الموضوعات تلقائياً
+  topics             String[] // الموضوعات (حتى 6)
+  skillsNarrative    String   @db.Text // المهارات المكتسبة — سردية علمية وليست نقاطاً
+  knowledgeNarrative String   @db.Text // المعارف المكتسبة — سردية علمية وليست نقاطاً
+  difficulties       String?  @db.Text // الصعوبات وكيفية التغلب عليها
+  // «الصور والشواهد والأدلة» => Attachment(kind = EVIDENCE) عبر المظروف
+
+  form     FieldForm         @relation(fields: [formId], references: [id], onDelete: Cascade)
+  planWeek TrainingPlanWeek? @relation(fields: [planWeekId], references: [id], onDelete: SetNull)
+
+  @@index([logDate])
+}
+
+// ---------------------------------------------------------------------
+//  5) تقرير البرنامج الجماعي / المجتمعي (النوع في المظروف: GROUP_PROGRAM | COMMUNITY_PROGRAM)
+// ---------------------------------------------------------------------
+model ProgramReport {
+  id     String @id @default(cuid())
+  formId String @unique
+
+  // أولاً: الجزء الإحصائي
+  programDate      DateTime @db.Date // يوم وتاريخ إقامة البرنامج
+  startTime        String? // وقت البرنامج HH:mm
+  durationMinutes  Int? // مدة البرنامج
+  membersCount     Int? // عدد أعضاء البرنامج
+  supervisorsCount Int? // عدد المشرفين على البرنامج
+  advisorName      String? // رائد البرنامج
+  leaderName       String? // قائد البرنامج
+  programType      String? // نوع البرنامج
+  programTitle     String // عنوانه
+
+  goals String? @db.Text // ثانياً: أهداف البرنامج
+
+  // البرنامج الجماعي
+  preparationPart String? @db.Text // ثالثاً: الجزء الإعدادي
+  narrativePart   String? @db.Text // رابعاً: الجزء القصصي
+  analyticalPart  String? @db.Text // خامساً: الجزء التحليلي
+
+  // البرنامج المجتمعي
+  planningPart  String? @db.Text // ثالثاً: الجزء التخطيطي
+  executionPart String? @db.Text // رابعاً: الجزء التنفيذي
+
+  // تقييم البرنامج
+  positives String[] // الإيجابيات
+  negatives String[] // السلبيات
+
+  form FieldForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------
+//  6) تسجيل الموقف السريع — المجال المدرسي / المجال الطبي
+// ---------------------------------------------------------------------
+model QuickSituation {
+  id            String          @id @default(cuid())
+  formId        String          @unique
+  domain        SituationDomain
+  situationDate DateTime        @db.Date // اليوم والتاريخ
+  subjectName   String? // اسم الطالب / اسم الحالة (اختياري في النموذج الرسمي — يُفضَّل اسم رمزي)
+
+  // المدرسي
+  schoolGrade String? // الصف الدراسي
+
+  // الطبي
+  medicalFileNumber  String? // رقم الملف (بيانات صحية حساسة — يُعرض مقنّعاً)
+  medicalVisitType   MedicalVisitType?
+  hospitalDepartment String? // القسم التابع له الحالة
+
+  referralSource String // مصدر التحويل
+  summary        String @db.Text // ملخص الموقف
+  actionsTaken   String @db.Text // الإجراءات المتخذة
+
+  form FieldForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------
+//  7) دراسة الحالة وفقاً لخطوات التدخل المهني
+// ---------------------------------------------------------------------
+model CaseStudy {
+  id               String  @id @default(cuid())
+  formId           String  @unique
+  caseAlias        String // اسم رمزي للحالة (حماية الخصوصية — إضافة على النموذج الرسمي)
+  consentConfirmed Boolean @default(false) // إقرار موافقة العميل وإخفاء هويته
+
+  // أولاً: التقدير — الجوانب الشخصية الأربعة
+  physicalAspect        String?  @db.Text // الجانب الجسمي
+  psychologicalAspect   String?  @db.Text // الجانب النفسي
+  mentalAspect          String?  @db.Text // الجانب العقلي
+  behavioralAspect      String?  @db.Text // الجانب السلوكي
+  // الجوانب البيئية
+  familyDynamics        String?  @db.Text // ديناميكية الأسرة
+  otherSystemsRelations String?  @db.Text // علاقة العميل بالأنساق الأخرى
+  mainProblem           String?  @db.Text // المشكلة الرئيسية
+  subProblems           String[] // المشكلات الفرعية
+  strengths             String?  @db.Text // جوانب القوى لدى العميل أو الأنساق المحيطة
+
+  // ثانياً: التخطيط
+  participatingSystems String?  @db.Text // الأنساق المشاركة للعميل
+  mainGoal             String?  @db.Text // الهدف الرئيسي
+  subGoals             String[] // الأهداف الفرعية
+  professionalContract String?  @db.Text // التعاقد المهني
+
+  // ثالثاً: التدخل المهني
+  therapeuticModels String[] // النموذج/النماذج العلاجية المستخدمة
+  techniques        String[] // الأساليب العلاجية المستخدمة
+
+  // رابعاً: التقييم — المبدئي (√ لكل جانب)
+  initProblemsWellFormulated Boolean? // صياغة المشكلات: تمت بدقة / لم تتم
+  initGoalsMeasurable        Boolean? // الأهداف: قابلة / غير قابلة للقياس
+  initGoalsAchievable        Boolean? // الأهداف: واقعية قابلة / غير قابلة للتحقيق
+  initTechniquesAppropriate  Boolean? // الأساليب العلاجية: مناسبة / غير مناسبة
+  initResponsibilitiesClear  Boolean? // مسئوليات الأنساق: واضحة / غير واضحة
+  // المرحلي
+  assessmentPositives        String?           @db.Text
+  assessmentNegatives        String?           @db.Text
+  planningPositives          String?           @db.Text
+  planningNegatives          String?           @db.Text
+  interventionPositives      String?           @db.Text
+  interventionNegatives      String?           @db.Text
+  // النهائي
+  finalOutcome               CaseFinalOutcome?
+
+  // خامساً: الإنهاء
+  terminationType        TerminationType?
+  // مخطط: العوامل التي أدت لقرار الإنهاء (√)
+  plannedGoalsAchieved   Boolean? // هل تم تحقيق أهداف التدخل المهني؟
+  plannedTimeAppropriate Boolean? // هل الوقت المتفق عليه كان مناسباً؟
+  plannedProblemHandled  Boolean? // هل تم التعامل مع المشكلة بمستوى مناسب؟
+  plannedResourcesUsed   Boolean? // هل استُثمرت الموارد المتاحة بشكل مناسب؟
+  plannedNeedsReferral   Boolean? // هل يحتاج العميل إلى التحويل لمؤسسة أخرى؟
+  // غير مخطط
+  unplannedWorkerFactors String?          @db.Text // عوامل ترجع إلى الأخصائي الاجتماعي
+  unplannedClientFactors String?          @db.Text // عوامل ترجع إلى العميل
+  unplannedSharedFactors String?          @db.Text // عوامل ترجع إليهما معاً
+
+  // سادساً: المتابعة
+  followUpInterval         FollowUpInterval?
+  followUpPurposes         FollowUpPurpose[]
+  followUpMethods          FollowUpMethod[]
+  resultPerformsSocialRole Boolean? // يقوم بأداء وظائفه الاجتماعية
+  resultUsesLearnedSkills  Boolean? // يستخدم المهارات التي تعلمها
+  resultNeedsOtherServices Boolean? // يحتاج للحصول على خدمات أخرى
+
+  form          FieldForm          @relation(fields: [formId], references: [id], onDelete: Cascade)
+  familyMembers CaseFamilyMember[]
+  interviews    InterviewRecord[]
+}
+
+/// جدول التكوين الأسري (بترتيب أفراد الأسرة من الأكبر إلى الأصغر)
+model CaseFamilyMember {
+  id            String  @id @default(cuid())
+  caseStudyId   String
+  order         Int // م
+  name          String // الاسم (يُفضَّل رمزياً)
+  age           Int? // السن
+  relation      String // الصلة بالعميل
+  education     String? // المستوى التعليمي
+  occupation    String? // المهنة
+  healthStatus  String? // الحالة الصحية
+  maritalStatus String? // الحالة الاجتماعية
+  notes         String? // ملاحظات
+
+  caseStudy CaseStudy @relation(fields: [caseStudyId], references: [id], onDelete: Cascade)
+
+  @@unique([caseStudyId, order])
+}
+
+// ---------------------------------------------------------------------
+//  8) تسجيل المقابلة المهنية (رقم المقابلة = FieldForm.sequence)
+// ---------------------------------------------------------------------
+model InterviewRecord {
+  id              String   @id @default(cuid())
+  formId          String   @unique
+  caseStudyId     String? // مقابلة ضمن دراسة حالة (اختياري)
+  interviewDate   DateTime @db.Date // يوم وتاريخ المقابلة
+  durationMinutes Int? // مدة المقابلة
+  location        String? // مكان المقابلة
+  parties         String // طرف أو أطراف المقابلة
+  goals           String   @db.Text // ثانياً: أهداف المقابلة
+  content         String   @db.Text // ثالثاً: محتوى المقابلة
+  skillsUsed      String?  @db.Text // رابعاً: المهارات المستخدمة
+  nextPlan        String?  @db.Text // خامساً: التخطيط للمقابلة القادمة
+  positives       String?  @db.Text // سادساً: الجوانب الإيجابية
+
+  form         FieldForm             @relation(fields: [formId], references: [id], onDelete: Cascade)
+  caseStudy    CaseStudy?            @relation(fields: [caseStudyId], references: [id], onDelete: SetNull)
+  difficulties InterviewDifficulty[]
+}
+
+/// الصعوبات وكيفية مواجهتها
+model InterviewDifficulty {
+  id          String @id @default(cuid())
+  interviewId String
+  order       Int
+  difficulty  String @db.Text
+  coping      String @db.Text
+
+  interview InterviewRecord @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  @@unique([interviewId, order])
+}
+
+// ---------------------------------------------------------------------
+//  9) نموذج القراءات (رقم القراءة = FieldForm.sequence) — توثيق APA
+// ---------------------------------------------------------------------
+model ReadingRecord {
+  id          String            @id @default(cuid())
+  formId      String            @unique
+  sourceType  ReadingSourceType // فصل في كتاب / بحث في مجلة / بحث في مؤتمر
+  readingDate DateTime          @db.Date
+
+  // عناصر APA المنظمة (تُولَّد منها صيغة التوثيق آلياً، ويمكن تعديلها يدوياً)
+  authors         String[] // "العتيبي، خ." / "Smith, J."
+  publicationYear Int?
+  title           String
+  containerTitle  String? // عنوان الكتاب / المجلة / المؤتمر
+  editors         String? // محررو الكتاب (للفصول)
+  volume          String?
+  issue           String?
+  pages           String?
+  publisher       String?
+  doi             String?
+  url             String?
+  apaCitation     String   @db.Text // التوثيق النهائي وفق APA
+
+  purpose             String @db.Text // الهدف من القراءة
+  professionalBenefit String @db.Text // الفوائد المهنية المستخلصة
+
+  form FieldForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------
+//  10) سجل الاجتماعات الإشرافية الجماعية (للمشرف الأكاديمي مع متدربي مؤسسة)
+// ---------------------------------------------------------------------
+model SupervisionMeeting {
+  id                   String         @id @default(cuid())
+  termId               String
+  organizationId       String
+  academicSupervisorId String
+  sectionId            String?
+  number               Int // الاجتماع الإشرافي الجماعي رقم ( )
+  status               DocumentStatus @default(DRAFT) // DRAFT → REVIEWED (معتمد من رئيس الاجتماع)
+
+  // أولاً: الجزء الإحصائي (أعداد الحضور والغياب تُحسب من MeetingAttendance)
+  meetingDate     DateTime @db.Date
+  startTime       String? // توقيت الاجتماع
+  durationMinutes Int?
+  location        String?
+
+  // ثانياً: جدول الأعمال
+  approvePreviousMinutes Boolean  @default(true) // التصديق على محضر الاجتماع السابق (عدا الأول)
+  agendaItems            String[]
+  // «ما يستجد من الأعمال» بند ثابت يُطبع آلياً
+
+  minutes   String?  @db.Text // ثالثاً: محضر الاجتماع
+  decisions String[] // رابعاً: القرارات والتوصيات
+
+  secretaryPlacementId String? // أمين الاجتماع (أحد المتدربين)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  term               AcademicTerm              @relation(fields: [termId], references: [id], onDelete: Cascade)
+  organization       Organization              @relation(fields: [organizationId], references: [id])
+  academicSupervisor AcademicSupervisorProfile @relation(fields: [academicSupervisorId], references: [id])
+  section            CourseSection?            @relation(fields: [sectionId], references: [id])
+  secretary          Placement?                @relation("MeetingSecretary", fields: [secretaryPlacementId], references: [id], onDelete: SetNull)
+  attendance         MeetingAttendance[]
+  signatures         FormSignature[]
+
+  @@unique([termId, organizationId, academicSupervisorId, number])
+}
+
+model MeetingAttendance {
+  id          String                  @id @default(cuid())
+  meetingId   String
+  placementId String
+  status      MeetingAttendanceStatus @default(PRESENT)
+  excuse      String?
+
+  meeting   SupervisionMeeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  placement Placement          @relation(fields: [placementId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, placementId])
+}
+
+// ---------------------------------------------------------------------
+//  11) سجل الحضور والانصراف (كشف يومي للمؤسسة يوقّعه المشرف المؤسسي)
+//      الأوقات نفسها في AttendanceRecord (التحضير الجغرافي)، والكشف يثبّت ما وُقِّع عليه
+// ---------------------------------------------------------------------
+model AttendanceSheet {
+  id                String    @id @default(cuid())
+  organizationId    String
+  sheetDate         DateTime  @db.Date
+  weekNumber        Int? // الأسبوع
+  fieldSupervisorId String?
+  recordsHash       String? // SHA-256 لسجلات اليوم وقت التوقيع (أي تعديل لاحق يُكتشف)
+  signedAt          DateTime?
+  createdAt         DateTime  @default(now())
+
+  organization    Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  fieldSupervisor FieldSupervisorProfile? @relation(fields: [fieldSupervisorId], references: [id])
+  records         AttendanceRecord[]
+  signatures      FormSignature[]
+
+  @@unique([organizationId, sheetDate])
 }

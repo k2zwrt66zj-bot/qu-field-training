@@ -23,6 +23,10 @@ async function main() {
   console.log("🧹 تنظيف البيانات...");
   // الترتيب مهم بسبب العلاقات
   await prisma.$transaction([
+    // النماذج الرسمية (تتسلسل حذفاً إلى جداولها التفصيلية)
+    prisma.formSignature.deleteMany(), prisma.attachment.deleteMany(), prisma.formComment.deleteMany(),
+    prisma.fieldForm.deleteMany(), prisma.supervisionMeeting.deleteMany(), prisma.attendanceSheet.deleteMany(),
+    prisma.courseSection.deleteMany(),
     prisma.auditLog.deleteMany(), prisma.alert.deleteMany(), prisma.finalGrade.deleteMany(),
     prisma.evaluationItem.deleteMany(), prisma.evaluation.deleteMany(), prisma.evaluationCriterion.deleteMany(),
     prisma.logbook.deleteMany(), prisma.fieldReport.deleteMany(), prisma.signature.deleteMany(),

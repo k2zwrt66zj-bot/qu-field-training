@@ -2,7 +2,7 @@
   "name": "qu-field-training",
   "version": "1.0.0",
   "private": true,
-  "description": "منصة إدارة التدريب الميداني - قسم علم الاجتماع والخدمة الاجتماعية - جامعة القصيم",
+  "description": "منصة إدارة التدريب الميداني - قسم الاجتماع والخدمة الاجتماعية - جامعة القصيم",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
@@ -14,7 +14,8 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:check-forms": "tsx prisma/checks/official-forms.check.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

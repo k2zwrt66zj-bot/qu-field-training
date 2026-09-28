@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "التدريب الميداني - جامعة القصيم",
     short_name: "التدريب الميداني",
-    description: "منصة إدارة التدريب الميداني لقسم علم الاجتماع والخدمة الاجتماعية",
+    description: "منصة إدارة التدريب الميداني لقسم الاجتماع والخدمة الاجتماعية",
     start_url: "/",
     display: "standalone",
     dir: "rtl",
