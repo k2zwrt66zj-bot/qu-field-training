@@ -1,6 +1,7 @@
 // تحويل صفوف القاعدة إلى «بيانات النموذج» بنفس شكل مخططات Zod (للعرض والتحقق والبصمة والطباعة)
 import type { LoadedForm, OfficialKind } from "./include";
 import { DETAIL_RELATION } from "./include";
+import { customContent } from "./custom";
 
 const DATE_KEYS = new Set(["commencementDate", "logDate", "programDate", "situationDate", "interviewDate", "readingDate"]);
 // المعرّفات الداخلية والعلاقات (تُسلسل الصفوف الفرعية أدناه)؛ «المجال» في المظروف لا في البيانات
@@ -28,6 +29,7 @@ const NOT_APPLICABLE: Record<string, string[]> = {
 };
 
 export function serializeForm(form: LoadedForm): Record<string, unknown> {
+  if (form.kind === "CUSTOM") return customContent(form.data);
   const kind = form.kind as OfficialKind;
   const detail = form[DETAIL_RELATION[kind]] as Record<string, unknown> | null;
   if (!detail) return {};

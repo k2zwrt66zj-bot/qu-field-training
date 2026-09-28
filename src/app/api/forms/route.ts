@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { placementScope } from "@/server/access";
 import { FORM_KINDS, FORM_POLICIES, formDisplayTitle, policyFor } from "@/lib/forms/catalog";
 import { createForm } from "@/server/forms/service";
+import { customTitle } from "@/lib/forms/ui/custom";
 
 /**
  * GET /api/forms?placementId=&kind=&status=
@@ -23,7 +24,7 @@ export const GET = handler(async (req: Request) => {
       ...(user.role !== "STUDENT" ? { status: { not: "DRAFT" } } : {}),
     },
     select: {
-      id: true, kind: true, sequence: true, status: true, submittedAt: true, updatedAt: true, lockedAt: true, placementId: true,
+      id: true, kind: true, sequence: true, status: true, submittedAt: true, updatedAt: true, lockedAt: true, placementId: true, title: true, templateKey: true,
       quickSituation: { select: { domain: true } },
       placement: { select: { student: { select: { user: { select: { fullName: true } } } }, section: { select: { mode: true } } } },
     },
@@ -35,7 +36,8 @@ export const GET = handler(async (req: Request) => {
     forms: visible.map((f) => ({
       id: f.id, kind: f.kind, sequence: f.sequence, status: f.status, locked: !!f.lockedAt, submittedAt: f.submittedAt, updatedAt: f.updatedAt,
       placementId: f.placementId, student: f.placement.student.user.fullName, domain: f.quickSituation?.domain ?? null,
-      title: formDisplayTitle(f.kind, f.sequence, f.quickSituation?.domain),
+      title: f.kind === "CUSTOM" ? f.title ?? customTitle(f.templateKey) : formDisplayTitle(f.kind, f.sequence, f.quickSituation?.domain),
+      templateKey: f.templateKey,
     })),
   });
 });
@@ -43,6 +45,8 @@ export const GET = handler(async (req: Request) => {
 const createSchema = z.object({
   kind: z.enum(FORM_KINDS),
   domain: z.enum(["SCHOOL", "MEDICAL"]).optional(),
+  templateKey: z.string().max(40).optional(), // للنماذج الإضافية (CUSTOM)
+  title: z.string().trim().max(200).optional(),
 });
 
 /** POST /api/forms — إنشاء نموذج (الطالب) مع تعبئة مسبقة */

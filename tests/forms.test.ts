@@ -241,3 +241,52 @@ test("grading: مكوّن التحضير للمحاكاة من السجلات ا
   assert.equal(calculateFinalGrade(base).attendanceComponent, 9, "الميداني: الساعات صفر تُخفّض المكوّن");
   assert.equal(calculateFinalGrade({ ...base, hoursApplicable: false }).attendanceComponent, 18, "المحاكاة: 0.9 × 20");
 });
+
+// ------------------------------------------------------------ تغطية الواجهات للمخططات
+import { specFor, specKeys } from "../src/lib/forms/ui/specs.ts";
+import { schemasFor } from "../src/lib/forms/schemas/index.ts";
+import { checkSubmit } from "../src/lib/forms/ui/requirements.ts";
+
+const VARIANTS: [string, "SCHOOL" | "MEDICAL" | null][] = [
+  ["COMMENCEMENT", null], ["ORGANIZATION_PROFILE", null], ["TRAINING_PLAN", null], ["SKILLS_LOG", null], ["GROUP_PROGRAM", null],
+  ["COMMUNITY_PROGRAM", null], ["QUICK_SITUATION", "SCHOOL"], ["QUICK_SITUATION", "MEDICAL"], ["CASE_STUDY", null], ["INTERVIEW", null], ["READING", null],
+];
+
+test("ui specs: كل حقل في المخطط له عنصر في الواجهة والعكس", () => {
+  for (const [kind, domain] of VARIANTS) {
+    const spec = specFor(kind as never, domain);
+    const editable = spec.sections.flatMap((s) => s.fields).filter((f) => f.widget.type !== "readonly").map((f) => f.key);
+    const shape = Object.keys((schemasFor(kind as never, domain).draft as unknown as { shape: Record<string, unknown> }).shape);
+    const label = `${kind}${domain ? `:${domain}` : ""}`;
+    assert.deepEqual(editable.filter((k) => !shape.includes(k)), [], `${label}: حقول في الواجهة غير موجودة في المخطط`);
+    assert.deepEqual(shape.filter((k) => !editable.includes(k)), [], `${label}: حقول في المخطط بلا واجهة`);
+    assert.equal(new Set(specKeys(spec)).size, specKeys(spec).length, `${label}: مفتاح مكرر`);
+  }
+});
+
+test("ui specs: كل حقل مطلوب عند الرفع ظاهر في الواجهة", () => {
+  for (const [kind, domain] of VARIANTS) {
+    const keys = specKeys(specFor(kind as never, domain));
+    const missing = Object.keys(checkSubmit(kind as never, {}, domain).byField).filter((k) => k !== "_" && !keys.includes(k));
+    assert.deepEqual(missing, [], `${kind}: حقول مطلوبة لا تظهر في الواجهة`);
+  }
+});
+
+test("checkSubmit: رسائل مجمعة حسب الحقل", () => {
+  const r = checkSubmit("COMMENCEMENT", { commencementDate: "2026-09-06", fixedTrainingDay: 1, shift: "MORNING" });
+  assert.equal(r.ready, false);
+  assert.deepEqual(Object.keys(r.byField), ["declarationAccepted"]);
+  assert.equal(checkSubmit("COMMENCEMENT", { commencementDate: "2026-09-06", fixedTrainingDay: 1, shift: "MORNING", declarationAccepted: true }).ready, true);
+});
+
+import { customSpec, CUSTOM_CREATABLE } from "../src/lib/forms/ui/custom.ts";
+import { REPORT_TEMPLATES as TEMPLATES } from "../src/lib/report-templates.ts";
+
+test("custom specs: القوالب الإضافية والسجلات القديمة تُعرض كاملة", () => {
+  for (const [key, t] of Object.entries(TEMPLATES)) {
+    const keys = specKeys(customSpec(key));
+    assert.deepEqual(keys, t.sections.flatMap((s) => s.fields.map((f) => f.key)), key);
+  }
+  assert.ok(specKeys(customSpec("LEGACY_LOGBOOK_WEEKLY")).includes("activities"));
+  assert.deepEqual([...CUSTOM_CREATABLE], ["FIELD_RESEARCH", "SOCIAL_SURVEY", "FINAL_REPORT"]);
+});

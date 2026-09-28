@@ -17,6 +17,9 @@ import { FORM_INCLUDE, DETAIL_RELATION, type LoadedForm, type OfficialKind } fro
 import { editableData, serializeForm } from "./serialize";
 import { persistFormData } from "./persist";
 import { defaultDomain, prefillDetail } from "./prefill";
+import { validateCustom } from "./custom";
+import { CUSTOM_CREATABLE, customTitle } from "@/lib/forms/ui/custom";
+import { REPORT_TEMPLATES } from "@/lib/report-templates";
 
 const OFFICIAL = Object.keys(DETAIL_RELATION) as OfficialKind[];
 const isOfficial = (k: FormKind): k is OfficialKind => (OFFICIAL as string[]).includes(k);
@@ -62,7 +65,9 @@ export function presentForm(form: LoadedForm, actor: Actor) {
     kind: form.kind,
     sequence: form.sequence,
     domain: domainOf(form),
-    title: formDisplayTitle(form.kind, form.sequence, domainOf(form)),
+    title: form.kind === "CUSTOM" ? form.title ?? customTitle(form.templateKey) : formDisplayTitle(form.kind, form.sequence, domainOf(form)),
+    templateKey: form.templateKey,
+    templateTitle: form.kind === "CUSTOM" ? customTitle(form.templateKey) : null,
     status: form.status,
     locked: !!form.lockedAt,
     submittedAt: form.submittedAt,
@@ -90,7 +95,8 @@ export function presentForm(form: LoadedForm, actor: Actor) {
 
 // ------------------------------------------------------------------ الإنشاء
 
-export async function createForm(user: SessionUser, input: { kind: FormKind; domain?: SituationDomain | null }) {
+export async function createForm(user: SessionUser, input: { kind: FormKind; domain?: SituationDomain | null; templateKey?: string; title?: string }) {
+  if (input.kind === "CUSTOM") return createCustomForm(user, input.templateKey, input.title);
   if (!isOfficial(input.kind)) throw new ApiError(422, "نوع نموذج غير مدعوم");
   const kind = input.kind;
   const placement = await prisma.placement.findFirst({
@@ -140,10 +146,48 @@ export async function createForm(user: SessionUser, input: { kind: FormKind; dom
   throw new ApiError(500, "تعذر إنشاء النموذج");
 }
 
+async function createCustomForm(user: SessionUser, templateKey?: string, title?: string) {
+  if (!templateKey || !(CUSTOM_CREATABLE as readonly string[]).includes(templateKey)) throw new ApiError(422, "قالب إضافي غير متاح");
+  if (!title?.trim() || title.trim().length < 3) throw new ApiError(422, "اكتب عنواناً للنموذج");
+  const placement = await prisma.placement.findFirst({
+    where: { student: { userId: user.id }, status: { in: ["ASSIGNED", "ACTIVE"] } },
+    include: { student: true },
+    orderBy: { startDate: "desc" },
+  });
+  if (!placement) throw new ApiError(404, "لا يوجد تدريب ميداني فعّال");
+  const tpl = REPORT_TEMPLATES[templateKey as keyof typeof REPORT_TEMPLATES];
+  if (!tpl.majors.includes(placement.student.major)) throw new ApiError(422, "هذا النموذج غير مخصص لتخصصك");
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await prisma.$transaction(async (tx) => {
+        if (templateKey === "FINAL_REPORT" && (await tx.fieldForm.count({ where: { placementId: placement.id, kind: "CUSTOM", templateKey } }))) {
+          throw new ApiError(409, "لديك تقرير ختامي مسبقاً");
+        }
+        const last = await tx.fieldForm.findFirst({ where: { placementId: placement.id, kind: "CUSTOM" }, orderBy: { sequence: "desc" }, select: { sequence: true } });
+        return tx.fieldForm.create({
+          data: { kind: "CUSTOM", templateKey, title: title.trim(), data: {}, placementId: placement.id, sequence: (last?.sequence ?? 0) + 1, createdById: user.id },
+        });
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002" && attempt < 2) continue;
+      throw e;
+    }
+  }
+  throw new ApiError(500, "تعذر إنشاء النموذج");
+}
+
 // ------------------------------------------------------------------ الحفظ
 
 export async function saveDraft(user: SessionUser, id: string, payload: unknown) {
   const { form } = await loadFormFor(user, id, "EDIT");
+  if (form.kind === "CUSTOM") {
+    const merged = { ...serializeForm(form), ...(payload as Record<string, unknown>) };
+    const c = validateCustom(form.templateKey, merged, "draft");
+    if (!c.ok) throw new ApiError(422, "بيانات غير صالحة", c.issues);
+    const legacy = (form.data as Record<string, unknown> | null)?._legacy;
+    await prisma.fieldForm.update({ where: { id: form.id }, data: { data: { ...c.data, ...(legacy ? { _legacy: legacy } : {}) } as object } });
+    return loadFormFor(user, id);
+  }
   if (!isOfficial(form.kind)) throw new ApiError(422, "نوع نموذج غير مدعوم");
   const v = validateForm(form.kind, payload, "draft", domainOf(form));
   if (!v.ok) throw new ApiError(422, "بيانات غير صالحة", v.issues);
@@ -188,6 +232,10 @@ export async function transitionForm(
   if (input.action === "SUBMIT" && isOfficial(form.kind)) {
     const v = validateForm(form.kind, editableData(form), "submit", domainOf(form));
     if (!v.ok) throw new ApiError(422, "أكمل الحقول المطلوبة قبل الرفع", v.issues);
+  }
+  if (input.action === "SUBMIT" && form.kind === "CUSTOM") {
+    const c = validateCustom(form.templateKey, serializeForm(form), "submit");
+    if (!c.ok) throw new ApiError(422, "أكمل الحقول المطلوبة قبل الرفع", c.issues);
   }
 
   // خانات التوقيع المطلوبة
