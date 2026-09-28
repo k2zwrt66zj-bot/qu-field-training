@@ -1,0 +1,696 @@
+// =====================================================================
+//  منصة إدارة التدريب الميداني
+//  جامعة القصيم - كلية اللغة العربية والدراسات الاجتماعية
+//  قسم علم الاجتماع والخدمة الاجتماعية
+// =====================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------------------------------------------------------------------
+//  التعدادات (Enums)
+// ---------------------------------------------------------------------
+
+enum Role {
+  STUDENT // طالب / طالبة
+  FIELD_SUPERVISOR // مشرف ميداني في جهة التدريب
+  ACADEMIC_SUPERVISOR // مشرف أكاديمي (عضو هيئة تدريس)
+  TRAINING_HEAD // رئيس وحدة التدريب الميداني
+  DEPARTMENT_HEAD // رئيس القسم
+  ADMIN // مدير النظام التقني
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum Major {
+  SOCIOLOGY // علم الاجتماع
+  SOCIAL_WORK // الخدمة الاجتماعية
+}
+
+enum OrgCategory {
+  MEDICAL // خدمة طبية (مستشفيات ومراكز صحية)
+  ORPHAN_CARE // رعاية أيتام
+  ELDERLY_CARE // رعاية مسنين
+  DISABILITY_CARE // رعاية ذوي الإعاقة
+  SCHOOL // مدارس وإرشاد طلابي
+  CHARITY // جمعيات خيرية وأهلية
+  FAMILY_COUNSELING // إرشاد أسري
+  JUVENILE_CARE // دور الملاحظة ورعاية الأحداث
+  PRISON_CARE // الإصلاحيات والسجون
+  ADDICTION_RECOVERY // علاج الإدمان
+  RESEARCH_CENTER // مراكز بحثية ودراسات اجتماعية
+  GOVERNMENT // جهات حكومية
+  OTHER
+}
+
+enum GenderScope {
+  MALE_ONLY
+  FEMALE_ONLY
+  BOTH
+}
+
+enum PlacementStatus {
+  DRAFT // مقترح (قبل الاعتماد)
+  ASSIGNED // موزع - بانتظار المباشرة
+  ACTIVE // باشر التدريب
+  COMPLETED // أنهى التدريب
+  WITHDRAWN // منسحب
+  SUSPENDED // موقوف
+}
+
+enum LetterType {
+  REFERRAL // خطاب توجيه للجهة
+  COMMENCEMENT // خطاب مباشرة
+  COMPLETION // إفادة إنهاء تدريب
+}
+
+enum AttendanceStatus {
+  PRESENT // حاضر
+  LATE // متأخر
+  ABSENT // غائب
+  EXCUSED // غياب بعذر
+  HOLIDAY // إجازة رسمية
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AttemptType {
+  CHECK_IN
+  CHECK_OUT
+}
+
+enum AttemptResult {
+  ACCEPTED // قُبلت
+  FLAGGED // قُبلت مع اشتباه - تحتاج مراجعة
+  REJECTED // رُفضت
+}
+
+enum LogbookType {
+  DAILY
+  WEEKLY
+}
+
+enum DocumentStatus {
+  DRAFT // مسودة
+  SUBMITTED // مرفوع للمشرف
+  SIGNED // موقّع من المشرف الميداني
+  RETURNED // معاد للتعديل
+  REVIEWED // تمت مراجعته أكاديمياً
+}
+
+enum ReportTemplate {
+  CASE_STUDY // دراسة حالة (خدمة اجتماعية)
+  SOCIAL_INTERVENTION // خطة تدخل اجتماعي (خدمة اجتماعية)
+  GROUP_WORK // خدمة جماعة (خدمة اجتماعية)
+  FIELD_RESEARCH // بحث ميداني (علم اجتماع)
+  SOCIAL_SURVEY // مسح اجتماعي (علم اجتماع)
+  FINAL_REPORT // التقرير الختامي (للتخصصين)
+}
+
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum VisitType {
+  IN_PERSON // حضورية
+  VIRTUAL // افتراضية
+}
+
+enum EvaluationType {
+  FIELD // تقييم المشرف الميداني
+  ACADEMIC // تقييم المشرف الأكاديمي
+}
+
+enum EvaluationStatus {
+  DRAFT
+  SUBMITTED
+  LOCKED
+}
+
+enum GradeStatus {
+  CALCULATED // محسوبة آلياً
+  APPROVED // معتمدة من رئيس التدريب
+  PUBLISHED // منشورة للطالب
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum AlertType {
+  CONSECUTIVE_ABSENCE // غياب متتالٍ
+  LOW_HOURS // ساعات أقل من المتوقع
+  SUSPICIOUS_GPS // اشتباه تحضير وهمي
+  MISSING_LOGBOOK // تأخر رفع السجل
+  PENDING_APPROVAL // حضور بانتظار الاعتماد
+  EVALUATION_DUE // تقييم مستحق
+  GENERAL
+}
+
+// ---------------------------------------------------------------------
+//  المستخدمون والملفات الشخصية
+// ---------------------------------------------------------------------
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  fullName     String
+  phone        String?
+  gender       Gender?
+  role         Role
+  title        String? // مثل: د. / أ.
+  isActive     Boolean   @default(true)
+  deviceId     String? // الجهاز المسجَّل للتحضير (للطلاب)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  student            StudentProfile?
+  fieldSupervisor    FieldSupervisorProfile?
+  academicSupervisor AcademicSupervisorProfile?
+
+  approvedAttendance AttendanceRecord[] @relation("AttendanceApprover")
+  evaluations        Evaluation[]       @relation("Evaluator")
+  signatures         Signature[]
+  assignedTasks      Task[]             @relation("TaskAssigner")
+  notes              SupervisorNote[]
+  issuedLetters      Letter[]           @relation("LetterIssuer")
+  approvedGrades     FinalGrade[]       @relation("GradeApprover")
+  alerts             Alert[]
+  auditLogs          AuditLog[]
+
+  @@index([role])
+}
+
+model StudentProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  universityId String   @unique // الرقم الجامعي
+  major        Major
+  gender       Gender
+  level        Int      @default(7) // المستوى الدراسي
+  gpa          Decimal? @db.Decimal(4, 2)
+
+  // البيانات الجغرافية (مكان السكن) لتقريب التوزيع
+  city     String
+  district String?
+  homeLat  Float?
+  homeLng  Float?
+
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preferences TrainingPreference[]
+  placements  Placement[]
+
+  @@index([major, gender])
+}
+
+model FieldSupervisorProfile {
+  id             String  @id @default(cuid())
+  userId         String  @unique
+  organizationId String
+  jobTitle       String?
+  department     String?
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id])
+  placements   Placement[]
+}
+
+model AcademicSupervisorProfile {
+  id           String  @id @default(cuid())
+  userId       String  @unique
+  academicRank String? // أستاذ / أستاذ مشارك / أستاذ مساعد / محاضر
+  maxStudents  Int     @default(15)
+
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  placements Placement[]
+  visits     SupervisionVisit[]
+}
+
+// ---------------------------------------------------------------------
+//  الفصول الدراسية وإعدادات التقييم
+// ---------------------------------------------------------------------
+
+model AcademicTerm {
+  id            String   @id @default(cuid())
+  name          String // مثال: الفصل الدراسي الأول 1448هـ
+  startDate     DateTime @db.Date
+  endDate       DateTime @db.Date
+  requiredHours Int      @default(120)
+  isActive      Boolean  @default(false)
+
+  // أوزان الدرجة النهائية (مجموعها 100)
+  fieldWeight      Int @default(40) // المشرف الميداني
+  academicWeight   Int @default(40) // المشرف الأكاديمي
+  attendanceWeight Int @default(20) // التحضير والسجلات
+
+  // إعدادات التحضير
+  lateAfterMinutes       Int @default(15) // التأخر بعد بداية الدوام
+  minDailyMinutes        Int @default(180) // الحد الأدنى لاحتساب اليوم
+  maxConsecutiveAbsences Int @default(3) // قبل التنبيه الحرج
+
+  createdAt DateTime @default(now())
+
+  preferences TrainingPreference[]
+  placements  Placement[]
+  criteria    EvaluationCriterion[]
+}
+
+// ---------------------------------------------------------------------
+//  جهات التدريب
+// ---------------------------------------------------------------------
+
+model Organization {
+  id             String      @id @default(cuid())
+  name           String
+  category       OrgCategory
+  city           String
+  address        String?
+  latitude       Float
+  longitude      Float
+  geofenceRadius Int         @default(100) // نصف قطر النطاق الجغرافي بالمتر
+  genderScope    GenderScope @default(BOTH)
+  acceptedMajors Major[]
+  capacityMale   Int         @default(0)
+  capacityFemale Int         @default(0)
+  contactName    String?
+  contactTitle   String? // المسمى الموجَّه إليه الخطاب: مدير / مديرة ...
+  contactPhone   String?
+  contactEmail   String?
+  workStartTime  String      @default("08:00") // HH:mm بتوقيت الرياض
+  workEndTime    String      @default("13:00")
+  isApproved     Boolean     @default(true)
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  supervisors FieldSupervisorProfile[]
+  placements  Placement[]
+  preferences TrainingPreference[]
+
+  @@index([category])
+  @@index([city])
+}
+
+model TrainingPreference {
+  id             String       @id @default(cuid())
+  studentId      String
+  termId         String
+  rank           Int // 1 = الرغبة الأولى
+  category       OrgCategory?
+  organizationId String?
+  notes          String?
+  createdAt      DateTime     @default(now())
+
+  student      StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  term         AcademicTerm   @relation(fields: [termId], references: [id])
+  organization Organization?  @relation(fields: [organizationId], references: [id])
+
+  @@unique([studentId, termId, rank])
+}
+
+// ---------------------------------------------------------------------
+//  التوزيع (الإسناد) - قلب النظام: طالب × جهة × فصل × مشرفَين
+// ---------------------------------------------------------------------
+
+model Placement {
+  id                   String          @id @default(cuid())
+  studentId            String
+  termId               String
+  organizationId       String
+  fieldSupervisorId    String?
+  academicSupervisorId String?
+  status               PlacementStatus @default(ASSIGNED)
+  startDate            DateTime        @db.Date
+  endDate              DateTime        @db.Date
+  requiredHours        Int             @default(120)
+  workDays             Int[]           @default([0, 1, 2, 3, 4]) // 0=الأحد ... 4=الخميس
+  approvedMinutes      Int             @default(0) // مجموع الدقائق المعتمدة (مُحدَّث آلياً)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  student            StudentProfile             @relation(fields: [studentId], references: [id])
+  term               AcademicTerm               @relation(fields: [termId], references: [id])
+  organization       Organization               @relation(fields: [organizationId], references: [id])
+  fieldSupervisor    FieldSupervisorProfile?    @relation(fields: [fieldSupervisorId], references: [id])
+  academicSupervisor AcademicSupervisorProfile? @relation(fields: [academicSupervisorId], references: [id])
+
+  letters     Letter[]
+  attendance  AttendanceRecord[]
+  attempts    AttendanceAttempt[]
+  logbooks    Logbook[]
+  reports     FieldReport[]
+  tasks       Task[]
+  notes       SupervisorNote[]
+  visits      SupervisionVisit[]
+  evaluations Evaluation[]
+  finalGrade  FinalGrade?
+  alerts      Alert[]
+
+  @@unique([studentId, termId])
+  @@index([organizationId])
+  @@index([fieldSupervisorId])
+  @@index([academicSupervisorId])
+  @@index([status])
+}
+
+model Letter {
+  id               String     @id @default(cuid())
+  placementId      String
+  type             LetterType
+  serialNumber     String     @unique // رقم الخطاب الصادر: FT-1448-000123
+  verificationCode String     @unique // رمز التحقق (QR)
+  issuedById       String
+  issuedAt         DateTime   @default(now())
+  revokedAt        DateTime?
+
+  placement Placement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  issuedBy  User      @relation("LetterIssuer", fields: [issuedById], references: [id])
+
+  @@index([placementId])
+}
+
+// ---------------------------------------------------------------------
+//  الحضور والتتبع الجغرافي
+// ---------------------------------------------------------------------
+
+/// سجل يومي واحد لكل طالب في كل يوم تدريب
+model AttendanceRecord {
+  id          String           @id @default(cuid())
+  placementId String
+  date        DateTime         @db.Date // يوم التدريب بتوقيت الرياض
+  status      AttendanceStatus @default(PRESENT)
+
+  checkInAt       DateTime?
+  checkInLat      Float?
+  checkInLng      Float?
+  checkInAccuracy Float?
+  checkInDistance Float? // بالمتر عن مركز الجهة
+
+  checkOutAt       DateTime?
+  checkOutLat      Float?
+  checkOutLng      Float?
+  checkOutAccuracy Float?
+  checkOutDistance Float?
+
+  workedMinutes Int @default(0)
+
+  // اعتماد المشرف الميداني
+  approvalStatus ApprovalStatus @default(PENDING)
+  approvedById   String?
+  approvedAt     DateTime?
+  supervisorNote String?
+
+  // مكافحة التحضير الوهمي
+  isSuspicious Boolean  @default(false)
+  riskScore    Int      @default(0) // 0 - 100
+  riskFlags    String[]
+  excuseNote   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  placement  Placement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  approvedBy User?     @relation("AttendanceApprover", fields: [approvedById], references: [id])
+
+  @@unique([placementId, date])
+  @@index([date])
+  @@index([approvalStatus])
+}
+
+/// كل محاولة تحضير (مقبولة أو مرفوضة) - سجل تدقيق كامل للتحليل الجنائي
+model AttendanceAttempt {
+  id           String        @id @default(cuid())
+  placementId  String
+  type         AttemptType
+  result       AttemptResult
+  latitude     Float
+  longitude    Float
+  accuracy     Float?
+  altitude     Float?
+  speed        Float?
+  heading      Float?
+  distance     Float?
+  positionTime DateTime? // الطابع الزمني من الجهاز
+  sampleCount  Int           @default(1)
+  sampleSpread Float? // تشتت العينات بالمتر
+  riskScore    Int           @default(0)
+  riskFlags    String[]
+  rejectReason String?
+  deviceId     String?
+  userAgent    String?
+  ipAddress    String?
+  createdAt    DateTime      @default(now())
+
+  placement Placement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+
+  @@index([placementId, createdAt])
+}
+
+// ---------------------------------------------------------------------
+//  السجلات والتقارير الميدانية
+// ---------------------------------------------------------------------
+
+model Logbook {
+  id              String         @id @default(cuid())
+  placementId     String
+  type            LogbookType
+  periodStart     DateTime       @db.Date
+  periodEnd       DateTime       @db.Date
+  weekNumber      Int?
+  activities      String // الأنشطة المنفذة
+  skills          String? // المهارات المكتسبة
+  challenges      String? // الصعوبات
+  reflections     String? // التأملات المهنية
+  plannedNext     String? // خطة الفترة القادمة
+  status          DocumentStatus @default(DRAFT)
+  submittedAt     DateTime?
+  fieldComment    String?
+  academicComment String?
+  signatureId     String?        @unique
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  placement Placement  @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  signature Signature? @relation(fields: [signatureId], references: [id])
+
+  @@unique([placementId, type, periodStart])
+}
+
+model FieldReport {
+  id              String         @id @default(cuid())
+  placementId     String
+  template        ReportTemplate
+  title           String
+  content         Json // حقول النموذج حسب القالب (انظر src/lib/report-templates.ts)
+  status          DocumentStatus @default(DRAFT)
+  submittedAt     DateTime?
+  academicComment String?
+  score           Decimal?       @db.Decimal(5, 2)
+  signatureId     String?        @unique
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  placement Placement  @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  signature Signature? @relation(fields: [signatureId], references: [id])
+
+  @@index([placementId])
+}
+
+/// التوقيع الإلكتروني: صورة التوقيع + بصمة SHA-256 للمحتوى الموقَّع
+model Signature {
+  id          String   @id @default(cuid())
+  signerId    String
+  imageData   String // Data URL (PNG) من لوحة التوقيع
+  contentHash String // SHA-256 للمستند وقت التوقيع لضمان عدم التعديل
+  ipAddress   String?
+  signedAt    DateTime @default(now())
+
+  signer     User         @relation(fields: [signerId], references: [id])
+  logbook    Logbook?
+  report     FieldReport?
+  evaluation Evaluation?
+}
+
+model Task {
+  id           String     @id @default(cuid())
+  placementId  String
+  assignedById String
+  title        String
+  description  String?
+  dueDate      DateTime?
+  status       TaskStatus @default(OPEN)
+  studentNote  String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  placement  Placement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  assignedBy User      @relation("TaskAssigner", fields: [assignedById], references: [id])
+}
+
+model SupervisorNote {
+  id          String   @id @default(cuid())
+  placementId String
+  authorId    String
+  content     String
+  isPrivate   Boolean  @default(false) // ملاحظة داخلية لا يراها الطالب
+  createdAt   DateTime @default(now())
+
+  placement Placement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  author    User      @relation(fields: [authorId], references: [id])
+}
+
+model SupervisionVisit {
+  id              String    @id @default(cuid())
+  placementId     String
+  supervisorId    String
+  type            VisitType
+  visitDate       DateTime
+  meetingLink     String? // للزيارات الافتراضية
+  latitude        Float? // لتوثيق الزيارة الحضورية جغرافياً
+  longitude       Float?
+  summary         String
+  recommendations String?
+  studentRating   Int? // 1 - 5
+  createdAt       DateTime  @default(now())
+
+  placement  Placement                 @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  supervisor AcademicSupervisorProfile @relation(fields: [supervisorId], references: [id])
+
+  @@index([placementId])
+}
+
+// ---------------------------------------------------------------------
+//  محرك التقييم
+// ---------------------------------------------------------------------
+
+/// بنود استمارة التقييم المعتمدة (قابلة للتعديل لكل فصل)
+model EvaluationCriterion {
+  id       String         @id @default(cuid())
+  termId   String
+  type     EvaluationType
+  section  String // المحور: الانضباط، المهارات المهنية، ...
+  label    String // نص البند
+  maxScore Int
+  order    Int
+  major    Major? // null = للتخصصين
+
+  term  AcademicTerm     @relation(fields: [termId], references: [id], onDelete: Cascade)
+  items EvaluationItem[]
+
+  @@index([termId, type])
+}
+
+model Evaluation {
+  id           String           @id @default(cuid())
+  placementId  String
+  evaluatorId  String
+  type         EvaluationType
+  status       EvaluationStatus @default(DRAFT)
+  rawScore     Decimal          @default(0) @db.Decimal(6, 2)
+  maxScore     Decimal          @default(0) @db.Decimal(6, 2)
+  percentage   Decimal          @default(0) @db.Decimal(5, 2)
+  strengths    String?
+  improvements String?
+  comments     String?
+  submittedAt  DateTime?
+  signatureId  String?          @unique
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  placement Placement        @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  evaluator User             @relation("Evaluator", fields: [evaluatorId], references: [id])
+  signature Signature?       @relation(fields: [signatureId], references: [id])
+  items     EvaluationItem[]
+
+  @@unique([placementId, type])
+}
+
+model EvaluationItem {
+  id           String  @id @default(cuid())
+  evaluationId String
+  criterionId  String
+  score        Decimal @db.Decimal(5, 2)
+  comment      String?
+
+  evaluation Evaluation          @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  criterion  EvaluationCriterion @relation(fields: [criterionId], references: [id])
+
+  @@unique([evaluationId, criterionId])
+}
+
+model FinalGrade {
+  id                  String      @id @default(cuid())
+  placementId         String      @unique
+  fieldComponent      Decimal     @db.Decimal(5, 2) // من 40
+  academicComponent   Decimal     @db.Decimal(5, 2) // من 40
+  attendanceComponent Decimal     @db.Decimal(5, 2) // من 20
+  total               Decimal     @db.Decimal(5, 2) // من 100
+  letterGrade         String // A+ / A / B+ ...
+  breakdown           Json // تفاصيل الحساب للشفافية
+  status              GradeStatus @default(CALCULATED)
+  calculatedAt        DateTime    @default(now())
+  approvedById        String?
+  approvedAt          DateTime?
+
+  placement  Placement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  approvedBy User?     @relation("GradeApprover", fields: [approvedById], references: [id])
+}
+
+// ---------------------------------------------------------------------
+//  التنبيهات وسجل التدقيق
+// ---------------------------------------------------------------------
+
+model Alert {
+  id          String        @id @default(cuid())
+  type        AlertType
+  severity    AlertSeverity
+  title       String
+  message     String
+  placementId String?
+  userId      String? // مستلم محدد (null = لوحة رئيس التدريب)
+  isResolved  Boolean       @default(false)
+  resolvedAt  DateTime?
+  createdAt   DateTime      @default(now())
+
+  placement Placement? @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  user      User?      @relation(fields: [userId], references: [id])
+
+  @@index([isResolved, severity])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String // attendance.check_in / grade.approve / letter.issue ...
+  entity    String
+  entityId  String?
+  meta      Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+}

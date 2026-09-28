@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* الهوية البصرية لجامعة القصيم (أخضر / ذهبي / رمادي) بصيغة HSL لمتغيرات shadcn */
+@layer base {
+  :root {
+    --background: 150 8% 97%;
+    --foreground: 150 6% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 150 6% 13%;
+    --primary: 155 75% 24%;          /* #0f6b45 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 41 50% 48%;         /* #b8963e */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 150 5% 93%;
+    --muted-foreground: 150 3% 42%;
+    --accent: 150 40% 94%;
+    --accent-foreground: 155 75% 18%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 150 5% 86%;
+    --input: 150 5% 82%;
+    --ring: 155 75% 24%;
+    --radius: 0.75rem;
+  }
+  .dark {
+    --background: 155 20% 7%;
+    --foreground: 150 6% 92%;
+    --card: 155 18% 10%;
+    --card-foreground: 150 6% 92%;
+    --primary: 152 60% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 41 55% 55%;
+    --secondary-foreground: 155 20% 7%;
+    --muted: 155 12% 16%;
+    --muted-foreground: 150 5% 65%;
+    --accent: 155 25% 16%;
+    --accent-foreground: 150 6% 92%;
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 155 10% 20%;
+    --input: 155 10% 24%;
+    --ring: 152 60% 40%;
+  }
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground antialiased; font-feature-settings: "ss01"; }
+  input[type="number"] { direction: ltr; text-align: right; }
+}
+
+/* خرائط Leaflet داخل واجهة RTL */
+.leaflet-container { direction: ltr; font-family: inherit; border-radius: var(--radius); }
+.leaflet-popup-content { direction: rtl; text-align: right; }
