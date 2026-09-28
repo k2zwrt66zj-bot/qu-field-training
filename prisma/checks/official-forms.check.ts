@@ -25,7 +25,8 @@ async function expectUniqueViolation(tx: Prisma.TransactionClient, label: string
 
 async function main() {
   const placement = await prisma.placement.findFirstOrThrow({
-    where: { student: { major: "SOCIAL_WORK" }, forms: { none: {} }, academicSupervisorId: { not: null }, fieldSupervisorId: { not: null } },
+    where: { student: { major: "SOCIAL_WORK" }, forms: { none: { kind: { not: "CUSTOM" } } }, // نماذج إضافية أو مرحّلة لا تؤثر
+      academicSupervisorId: { not: null }, fieldSupervisorId: { not: null } },
     include: { student: true, fieldSupervisor: true, academicSupervisor: true, organization: true },
   });
   const studentUserId = placement.student.userId;

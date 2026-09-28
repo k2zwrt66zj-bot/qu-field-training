@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { INSTITUTION, MAJOR_LABELS } from "@/lib/labels";
 import { formatDateAr, formatHijri } from "@/lib/time";
 import { BRAND } from "@/lib/brand";
+import { embeddedFonts, htmlToPdf } from "@/server/pdf/engine";
 
 export const LETTER_TYPE_LABELS: Record<LetterType, string> = {
   REFERRAL: "خطاب توجيه متدرب",
@@ -100,8 +101,7 @@ export async function renderLetterHtml(letterId: string, baseUrl: string, opts: 
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>${LETTER_TYPE_LABELS[letter.type]} - ${esc(st.user.fullName)}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap" rel="stylesheet" />
+<style>${await embeddedFonts()}</style>
 <style>
   @page { size: A4; margin: 14mm 16mm; }
   * { box-sizing: border-box; }
@@ -165,19 +165,5 @@ ${opts.printButton ? `<div class="toolbar"><button onclick="window.print()">طب
 </html>`;
 }
 
-/** توليد PDF على الخادم عبر Chromium (إن توفر) */
-export async function renderLetterPdf(html: string): Promise<Uint8Array | null> {
-  const executablePath = process.env.CHROME_EXECUTABLE_PATH;
-  if (!executablePath) return null;
-  const puppeteer = await import("puppeteer-core");
-  const browser = await puppeteer.default.launch({ executablePath, args: ["--no-sandbox", "--font-render-hinting=none"] });
-  try {
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "load", timeout: 20_000 }).catch(() => undefined);
-    await page.waitForNetworkIdle({ idleTime: 300, timeout: 8_000 }).catch(() => undefined);
-    await page.evaluate(() => document.fonts.ready);
-    return await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: true });
-  } finally {
-    await browser.close();
-  }
-}
+/** توليد PDF على الخادم عبر Chromium (إن توفر) — المحرك المشترك مع النماذج الرسمية */
+export const renderLetterPdf = (html: string) => htmlToPdf(html);

@@ -3,8 +3,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { MeetingAttendanceStatus } from "@prisma/client";
-import { ArrowRight, BadgeCheck, CircleCheck, CloudUpload, Info, LoaderCircle, PenLine, Printer, Trash2, TriangleAlert, Undo2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, BadgeCheck, FileDown, CircleCheck, CloudUpload, Info, LoaderCircle, PenLine, Printer, Trash2, TriangleAlert, Undo2 } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
@@ -306,6 +306,7 @@ export function MeetingWorkspace({ initial }: { initial: PresentedMeeting }) {
               )}
             </div>
           )}
+          <a href={`/api/meetings/${m.id}/pdf`} target="_blank" rel="noopener" className={buttonVariants({ className: "w-full" })}><FileDown /> تنزيل المحضر PDF</a>
           <Button variant="outline" className="w-full" onClick={() => window.print()}><Printer /> طباعة</Button>
         </aside>
       </div>

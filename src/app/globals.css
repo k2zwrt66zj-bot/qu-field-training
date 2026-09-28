@@ -44,6 +44,7 @@
     --ring: 178 70% 45%;
   }
   * { @apply border-border; }
+  :root { --font-arabic: "IBM Plex Sans Arabic"; }
   body { @apply bg-background text-foreground antialiased; font-feature-settings: "ss01"; }
   input[type="number"] { direction: ltr; text-align: right; }
 }

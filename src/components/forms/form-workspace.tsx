@@ -2,9 +2,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CircleCheck, CloudUpload, ListChecks, LoaderCircle, Printer, Send, Trash2, TriangleAlert, Undo2, PenLine, BadgeCheck } from "lucide-react";
+import { ArrowRight, CircleCheck, FileDown, CloudUpload, ListChecks, LoaderCircle, Printer, Send, Trash2, TriangleAlert, Undo2, PenLine, BadgeCheck } from "lucide-react";
 import type { SignatureSlot } from "@prisma/client";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { FormRenderer } from "./form-renderer";
@@ -251,6 +251,9 @@ export function FormWorkspace({ initial, context }: { initial: PresentedForm; co
             </div>
           )}
 
+          {form.allowedActions.includes("EXPORT") && (
+            <a href={`/api/forms/${form.id}/pdf`} target="_blank" rel="noopener" className={buttonVariants({ variant: "default", className: "w-full" })}><FileDown /> تنزيل PDF الرسمي</a>
+          )}
           <Button variant="outline" className="w-full" onClick={() => window.print()}><Printer /> طباعة</Button>
           {form.locked && <p className={cn("rounded-lg bg-qu-teal-50 p-3 text-xs text-qu-teal-800")}>النموذج مقفل بعد اعتماد النتيجة النهائية.</p>}
         </aside>

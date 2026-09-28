@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, ChevronLeft, ChevronRight, CircleAlert, MapPin, ShieldAlert, ShieldCheck } from "lucide-react";
+import { ArrowRight, FileDown, ChevronLeft, ChevronRight, CircleAlert, MapPin, ShieldAlert, ShieldCheck } from "lucide-react";
 import { requirePageRole } from "@/lib/auth/session";
 import { ApiError } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { PrintButton } from "@/components/attendance/print-button";
 import { SignSheetButton } from "@/components/attendance/sign-sheet-button";
 import { loadSheet } from "@/server/attendance-sheets";
@@ -134,6 +135,7 @@ export default async function SheetPage({ params }: { params: Promise<{ orgId: s
               ) : <SignSheetButton organizationId={orgId} date={date} missing={s.summary.missing} />}
             </div>
           ) : null}
+          <a href={`/api/attendance-sheets/${orgId}/${date}/pdf`} target="_blank" rel="noopener" className={buttonVariants({ className: "w-full" })}><FileDown /> تنزيل الكشف PDF</a>
           <PrintButton />
         </aside>
       </div>

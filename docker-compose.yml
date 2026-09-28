@@ -1,0 +1,16 @@
+# قاعدة PostgreSQL للتشغيل المحلي (اختياري لمن لا يملك PostgreSQL مثبتاً)
+#   docker compose up -d
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: qu_field_training
+    ports:
+      - "5432:5432"
+    volumes:
+      - qu-field-training-db:/var/lib/postgresql/data
+volumes:
+  qu-field-training-db:

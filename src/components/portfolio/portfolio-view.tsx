@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { FormKind } from "@prisma/client";
 import {
   Archive, BookOpen, CalendarRange, ChevronLeft, CircleAlert, CircleCheck, ClipboardList, DoorOpen, Building2, Info, Landmark,
-  MessagesSquare, NotebookPen, Users, UsersRound, Zap, MapPin,
+  FileDown, MessagesSquare, NotebookPen, Users, UsersRound, Zap, MapPin,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -107,7 +107,8 @@ export function PortfolioView({ p }: { p: Portfolio }) {
               <div>{INSTITUTION.college}</div>
               <div>{INSTITUTION.department} — {INSTITUTION.unit}</div>
             </div>
-            <div className="ms-auto flex flex-wrap gap-2">
+            <div className="ms-auto flex flex-wrap items-center gap-2">
+              <a href={`/api/portfolio/${t.placementId}/pdf`} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-qu-navy-800 hover:bg-qu-teal-50 print:hidden"><FileDown className="size-4" /> تنزيل السجل المهني PDF</a>
               <Badge className="border-white/20 bg-white/10 text-white">{p.modeLabel}</Badge>
               <Badge className="border-white/20 bg-white/10 text-white">{PLACEMENT_STATUS_LABELS[t.status]}</Badge>
             </div>
