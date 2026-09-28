@@ -44,6 +44,8 @@ export async function recordAttendance(input: AttendanceActionInput): Promise<At
   if (!placement) throw new ApiError(404, "لا يوجد تدريب ميداني فعّال لك اليوم");
   if (placement.section?.mode === "SIMULATION") throw new ApiError(422, "التدريب بالمحاكاة لا يتطلب تحضيراً جغرافياً (لا يوجد مقر تدريب فعلي)");
   if (!placement.workDays.includes(riyadhWeekday(now))) throw new ApiError(422, "اليوم ليس من أيام التدريب المعتمدة");
+  // كشف اليوم الموقّع يُقفل التحضير والانصراف (استيراد متأخر لتفادي الاعتماد الدائري)
+  await (await import("./attendance-sheets")).assertDayOpen([placement.id], today);
 
   const org = placement.organization;
   const user = placement.student.user;

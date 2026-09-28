@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { FormStatusBadge } from "@/components/forms/form-status-badge";
 import { loadQueueOverview, loadSupervisorQueue, QUEUE_SLA_DAYS, type QueueGroup, type QueueItem } from "@/server/forms/queue";
 import { cn } from "@/lib/utils";
+import { prisma } from "@/lib/prisma";
+import { listSheetDays } from "@/server/attendance-sheets";
 
 export const metadata = { title: "قائمة الاعتماد" };
 export const dynamic = "force-dynamic";
@@ -55,6 +57,19 @@ export default async function QueuePage({ searchParams }: { searchParams: Promis
   if (user.role === "FIELD_SUPERVISOR" || user.role === "ACADEMIC_SUPERVISOR") {
     const q = await loadSupervisorQueue(user, kind);
     const field = user.role === "FIELD_SUPERVISOR";
+    // أعمال المرحلة 4: محاضر اجتماعات بانتظار اعتماد رئيسها، وكشوف أيام لم تُوقَّع
+    const [pendingMinutes, sheetDays] = await Promise.all([
+      field ? [] : prisma.supervisionMeeting.findMany({
+        where: { status: "SUBMITTED", academicSupervisor: { userId: user.id } },
+        select: { id: true, number: true, organization: { select: { name: true } } },
+        orderBy: { submittedAt: "asc" },
+      }),
+      field
+        ? prisma.fieldSupervisorProfile.findUnique({ where: { userId: user.id }, select: { organizationId: true } })
+            .then((fp) => (fp ? listSheetDays(user, fp.organizationId) : null))
+        : null,
+    ]);
+    const unsignedDays = sheetDays?.days.filter((d) => !d.signed) ?? [];
     return (
       <>
         <PageHeader
@@ -67,6 +82,24 @@ export default async function QueuePage({ searchParams }: { searchParams: Promis
           <StatCard label="أقدم نموذج" value={q.stats.pending ? ageText(q.stats.oldestDays) : "—"} icon={Hourglass} />
           <StatCard label="طلاب لديهم نماذج معلّقة" value={q.stats.students} icon={Users} />
         </div>
+        {pendingMinutes.length > 0 && (
+          <Card className="mb-4 border-amber-200" data-pending="minutes">
+            <CardHeader className="pb-2"><CardTitle className="text-base">محاضر اجتماعات بانتظار اعتمادك ({pendingMinutes.length})</CardTitle></CardHeader>
+            <CardContent className="flex flex-wrap gap-2">
+              {pendingMinutes.map((m) => (
+                <Link key={m.id} href={`/meetings/${m.id}`} className="rounded-lg border px-3 py-1.5 text-sm hover:bg-qu-navy-50/50">الاجتماع رقم ({m.number}) — {m.organization.name}</Link>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+        {unsignedDays.length > 0 && sheetDays?.organization && (
+          <Card className="mb-4 border-amber-200" data-pending="sheets">
+            <CardContent className="flex flex-wrap items-center justify-between gap-2 p-4 text-sm">
+              <span>كشوف حضور يومية لم تُوقَّع: <b className="tabular-nums">{unsignedDays.length}</b> يوم تدريب</span>
+              <Link href={`/attendance-sheets/${sheetDays.organization.id}/${unsignedDays[unsignedDays.length - 1].date}`} className="text-qu-teal-700 hover:underline">توقيع الأقدم</Link>
+            </CardContent>
+          </Card>
+        )}
         <GroupChips counts={q.groupCounts} active={q.group} />
 
         {q.groups.length === 0 ? (

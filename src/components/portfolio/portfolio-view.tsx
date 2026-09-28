@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { FormKind } from "@prisma/client";
 import {
   Archive, BookOpen, CalendarRange, ChevronLeft, CircleAlert, CircleCheck, ClipboardList, DoorOpen, Building2, Info, Landmark,
-  MessagesSquare, NotebookPen, Users, Zap, MapPin,
+  MessagesSquare, NotebookPen, Users, UsersRound, Zap, MapPin,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import { INSTITUTION, MAJOR_LABELS, PLACEMENT_STATUS_LABELS } from "@/lib/labels
 import { LOGO } from "@/lib/brand";
 import { formatDateAr, formatShortDateAr } from "@/lib/time";
 import { cn } from "@/lib/utils";
+import { MEETING_ATTENDANCE_LABELS, MEETING_STATUS_LABELS } from "@/lib/meetings";
 
 const KIND_ICONS: Partial<Record<FormKind, React.ComponentType<{ className?: string }>>> = {
   COMMENCEMENT: DoorOpen,
@@ -276,9 +277,38 @@ export function PortfolioView({ p }: { p: Portfolio }) {
               حضور <b className="tabular-nums text-foreground">{p.attendance.present}</b> يوماً (منها {p.attendance.late} تأخر) · غياب <b className="tabular-nums text-foreground">{p.attendance.absent}</b> · بعذر <b className="tabular-nums text-foreground">{p.attendance.excused}</b>
               {t.commencedAt && <> · تاريخ المباشرة {formatDateAr(t.commencedAt)}</>}
             </p>
+            <p className="text-xs text-muted-foreground">
+              أيام مدرجة في كشوف يومية وقّعها المشرف المؤسسي: <b className="tabular-nums text-foreground">{p.attendance.signedDays}</b>
+            </p>
           </CardContent>
         </Card>
       )}
+
+      {/* ------------------------------------------------ الاجتماعات الإشرافية الجماعية */}
+      <section aria-labelledby="meetings-heading" className="space-y-3">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 id="meetings-heading" className="flex items-center gap-2 text-lg font-bold text-qu-navy-800"><UsersRound className="size-5 text-qu-teal-700" /> سجل الاجتماعات الإشرافية الجماعية</h2>
+            <p className="text-sm text-muted-foreground">يعقدها المشرف الأكاديمي مع متدربي المؤسسة، ويكتب محضرها أمين من المتدربين.</p>
+          </div>
+          {p.isStudent && <Link href="/meetings" className={buttonVariants({ variant: "outline", size: "sm" })}>كل الاجتماعات</Link>}
+        </div>
+        {p.meetings.length === 0 ? (
+          <p className="rounded-lg border bg-card px-4 py-3 text-sm text-muted-foreground">لم يُعقد اجتماع إشرافي بعد.</p>
+        ) : (
+          <div className="space-y-2">
+            {p.meetings.map((m) => (
+              <Link key={m.id} href={`/meetings/${m.id}`} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-lg border bg-card px-3 py-2.5 text-sm hover:bg-qu-navy-50/50">
+                <span className="min-w-[10rem] flex-1 font-medium text-qu-navy-800">الاجتماع الإشرافي الجماعي رقم ({m.number})</span>
+                <span className="text-xs text-muted-foreground">{formatShortDateAr(m.meetingDate)}</span>
+                {m.secretary && <Badge variant="teal">أمين الاجتماع</Badge>}
+                <Badge variant={m.attendance === "PRESENT" ? "success" : m.attendance === "ABSENT_EXCUSED" ? "warning" : "destructive"}>{MEETING_ATTENDANCE_LABELS[m.attendance]}</Badge>
+                <Badge variant={m.status === "REVIEWED" ? "success" : m.status === "SUBMITTED" ? "warning" : "muted"}>{MEETING_STATUS_LABELS[m.status] ?? m.status}</Badge>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* ------------------------------------------------ الأرشيف */}
       {p.archive.length > 0 && (

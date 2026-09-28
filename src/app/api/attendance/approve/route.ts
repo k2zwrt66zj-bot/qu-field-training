@@ -3,6 +3,7 @@ import { z } from "zod";
 import { ApiError, audit, clientIp, handler, parseBody, requireRole } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { recomputeApprovedMinutes } from "@/server/attendance";
+import { assertDayOpen } from "@/server/attendance-sheets";
 
 const schema = z.object({
   recordIds: z.array(z.string()).min(1).max(200),
@@ -26,9 +27,11 @@ export const POST = handler(async (req: Request) => {
       id: { in: body.recordIds },
       ...(user.role === "FIELD_SUPERVISOR" ? { placement: { fieldSupervisor: { userId: user.id } } } : {}),
     },
-    select: { id: true, placementId: true, checkOutAt: true },
+    select: { id: true, placementId: true, checkOutAt: true, date: true },
   });
   if (records.length !== body.recordIds.length) throw new ApiError(403, "بعض السجلات لا تتبع طلابك");
+  // تعديل المدة يغيّر ما وُقّع عليه في كشف اليوم
+  if (body.adjustedMinutes != null) await assertDayOpen([records[0].placementId], records[0].date);
   if (body.decision === "APPROVED" && records.some((r) => !r.checkOutAt) && body.adjustedMinutes == null) {
     throw new ApiError(422, "لا يمكن اعتماد يوم لم يُسجَّل فيه الانصراف (يمكنك تحديد المدة يدوياً)");
   }

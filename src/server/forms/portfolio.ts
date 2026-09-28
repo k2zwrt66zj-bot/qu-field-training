@@ -186,6 +186,22 @@ export async function loadPortfolio(user: SessionUser, placementId: string | nul
           return { present: c("PRESENT") + c("LATE"), late: c("LATE"), absent: c("ABSENT"), excused: c("EXCUSED"), hours: Math.round((placement.approvedMinutes / 60) * 10) / 10, requiredHours: placement.requiredHours };
         })
       : null;
+  // أيام الحضور المدرجة في كشوف يومية وقّعها المشرف المؤسسي
+  const signedDays = attendance ? await prisma.attendanceRecord.count({ where: { placementId: placement.id, sheetId: { not: null } } }) : 0;
+
+  // ------------------------------------------------------------ الاجتماعات الإشرافية الجماعية
+  const meetingRows = await prisma.meetingAttendance.findMany({
+    where: { placementId: placement.id },
+    select: { status: true, meeting: { select: { id: true, number: true, meetingDate: true, status: true, secretaryPlacementId: true } } },
+    orderBy: { meeting: { number: "asc" } },
+  });
+  const meetings = meetingRows
+    // المسودة لأمينها فقط
+    .filter((r) => r.meeting.status !== "DRAFT" || (isStudent && r.meeting.secretaryPlacementId === placement.id))
+    .map((r) => ({
+      id: r.meeting.id, number: r.meeting.number, meetingDate: r.meeting.meetingDate, status: r.meeting.status,
+      attendance: r.status, secretary: r.meeting.secretaryPlacementId === placement.id,
+    }));
 
   const s = placement.section;
   return {
@@ -218,7 +234,8 @@ export async function loadPortfolio(user: SessionUser, placementId: string | nul
     templates,
     summary,
     steps: steps.slice(0, 4),
-    attendance,
+    attendance: attendance && { ...attendance, signedDays },
+    meetings,
   };
 }
 
