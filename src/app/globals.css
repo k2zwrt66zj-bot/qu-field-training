@@ -49,5 +49,5 @@
 }
 
 /* خرائط Leaflet داخل واجهة RTL */
-.leaflet-container { direction: ltr; font-family: inherit; border-radius: var(--radius); }
+.leaflet-container { direction: ltr; font-family: inherit; border-radius: var(--radius); isolation: isolate; z-index: 0; }
 .leaflet-popup-content { direction: rtl; text-align: right; }

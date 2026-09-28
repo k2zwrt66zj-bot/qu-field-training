@@ -96,3 +96,18 @@ test("evaluation scoring + letter grades", () => {
   assert.equal(toLetterGrade(95), "A+");
   assert.equal(toLetterGrade(59.99), "F");
 });
+
+import { parseCoordinates } from "../src/lib/geo/parse-coords.ts";
+
+test("parseCoordinates: صيغ روابط الخرائط الشائعة", () => {
+  const exp = { latitude: 26.3415, longitude: 43.9632 };
+  assert.deepEqual(parseCoordinates("26.3415, 43.9632"), exp);
+  assert.deepEqual(parseCoordinates("26.3415،43.9632"), exp);
+  assert.deepEqual(parseCoordinates("https://www.google.com/maps/@26.3415,43.9632,17z"), exp);
+  assert.deepEqual(parseCoordinates("https://www.google.com/maps/place/X/@26.30,43.90,15z/data=!3m1!4b1!4m6!3m5!1s0x0:0x0!8m2!3d26.3415!4d43.9632"), exp); // الدبوس لا مركز الكاميرا
+  assert.deepEqual(parseCoordinates("https://maps.google.com/?q=26.3415,43.9632"), exp);
+  assert.deepEqual(parseCoordinates("https://maps.apple.com/?ll=26.3415,43.9632&q=Pin"), exp);
+  assert.deepEqual(parseCoordinates("https://www.openstreetmap.org/#map=17/26.3415/43.9632"), exp);
+  assert.equal(parseCoordinates("https://maps.app.goo.gl/AbCdEf"), null);
+  assert.equal(parseCoordinates("مستشفى بريدة"), null);
+});

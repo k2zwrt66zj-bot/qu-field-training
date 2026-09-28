@@ -16,6 +16,8 @@ export const NAV: Record<Role, NavItem[]> = {
   TRAINING_HEAD: [
     { href: "/training-head", label: "لوحة المتابعة اللحظية", icon: "activity" },
     { href: "/training-head/placements", label: "التوزيع والخطابات", icon: "file" },
+    { href: "/training-head/organizations", label: "جهات التدريب", icon: "building" },
+    { href: "/training-head/settings", label: "بنود التقييم والإعدادات", icon: "settings" },
     { href: "/training-head/grades", label: "اعتماد النتائج", icon: "award" },
     { href: "/department-head", label: "اللوحة الاستراتيجية", icon: "chart" },
   ],

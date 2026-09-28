@@ -5,12 +5,12 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 import type { Role } from "@prisma/client";
-import { Activity, Award, BookOpen, ChartPie, FileText, House, LogOut, MapPin, Menu, PenLine, Users, X } from "lucide-react";
+import { Activity, Award, BookOpen, Building2, ChartPie, FileText, House, LogOut, MapPin, Menu, PenLine, Settings, Users, X } from "lucide-react";
 import { NAV } from "./nav";
 import { ROLE_LABELS, INSTITUTION } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
-const ICONS = { home: House, "map-pin": MapPin, book: BookOpen, users: Users, pen: PenLine, activity: Activity, file: FileText, award: Award, chart: ChartPie } as const;
+const ICONS = { home: House, "map-pin": MapPin, book: BookOpen, users: Users, pen: PenLine, activity: Activity, file: FileText, award: Award, chart: ChartPie, building: Building2, settings: Settings } as const;
 
 export function AppShell({ user, children }: { user: { name: string; role: Role }; children: React.ReactNode }) {
   const pathname = usePathname();
@@ -89,8 +89,9 @@ export function AppShell({ user, children }: { user: { name: string; role: Role 
         <main className="flex-1 p-4 pb-24 md:p-6 lg:pb-6">{children}</main>
 
         {/* شريط تنقل سفلي للجوال (تجربة PWA) */}
-        <nav className="fixed inset-x-0 bottom-0 z-40 grid border-t bg-card lg:hidden" style={{ gridTemplateColumns: `repeat(${items.length}, 1fr)` }}>
-          {items.map((it) => {
+        <nav className="fixed inset-x-0 bottom-0 z-40 grid border-t bg-card lg:hidden" style={{ gridTemplateColumns: `repeat(${Math.min(items.length, 4)}, 1fr)` }}>
+          {/* أول 4 روابط فقط؛ البقية في القائمة الجانبية */}
+          {items.slice(0, 4).map((it) => {
             const Icon = ICONS[it.icon as keyof typeof ICONS];
             const active = pathname === it.href;
             return (
