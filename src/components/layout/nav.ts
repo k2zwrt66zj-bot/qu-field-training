@@ -2,32 +2,39 @@ import type { Role } from "@prisma/client";
 
 export interface NavItem { href: string; label: string; icon: string }
 
+/** روابط لا تنطبق على طلاب التدريب بالمحاكاة (لا مقر تدريب فعلي — قرار القسم) */
+export const SITE_BOUND_HREFS = ["/student/attendance"];
+
 export const NAV: Record<Role, NavItem[]> = {
   STUDENT: [
     { href: "/student", label: "الرئيسية", icon: "home" },
+    { href: "/portfolio", label: "السجل المهني", icon: "book" },
     { href: "/student/attendance", label: "التحضير الميداني", icon: "map-pin" },
-    { href: "/student/logbooks", label: "السجلات اليومية", icon: "book" },
-    { href: "/student/reports", label: "التقارير الميدانية", icon: "file" },
   ],
   FIELD_SUPERVISOR: [
     { href: "/field-supervisor", label: "المتدربون والحضور", icon: "users" },
-    { href: "/field-supervisor/logbooks", label: "السجلات والتقارير للتوقيع", icon: "pen" },
+    { href: "/queue", label: "قائمة الاعتماد", icon: "inbox" },
   ],
   ACADEMIC_SUPERVISOR: [
     { href: "/academic-supervisor", label: "طلابي", icon: "users" },
-    { href: "/academic-supervisor/reports", label: "تقارير الطلاب", icon: "file" },
+    { href: "/queue", label: "قائمة الاعتماد", icon: "inbox" },
   ],
   TRAINING_HEAD: [
     { href: "/training-head", label: "لوحة المتابعة اللحظية", icon: "activity" },
+    { href: "/queue", label: "متابعة الاعتماد", icon: "inbox" },
     { href: "/training-head/placements", label: "التوزيع والخطابات", icon: "file" },
     { href: "/training-head/organizations", label: "جهات التدريب", icon: "building" },
     { href: "/training-head/settings", label: "بنود التقييم والإعدادات", icon: "settings" },
     { href: "/training-head/grades", label: "اعتماد النتائج", icon: "award" },
     { href: "/department-head", label: "اللوحة الاستراتيجية", icon: "chart" },
   ],
-  DEPARTMENT_HEAD: [{ href: "/department-head", label: "اللوحة الاستراتيجية", icon: "chart" }],
+  DEPARTMENT_HEAD: [
+    { href: "/department-head", label: "اللوحة الاستراتيجية", icon: "chart" },
+    { href: "/queue", label: "متابعة الاعتماد", icon: "inbox" },
+  ],
   ADMIN: [
     { href: "/training-head", label: "لوحة المتابعة", icon: "activity" },
+    { href: "/queue", label: "متابعة الاعتماد", icon: "inbox" },
     { href: "/department-head", label: "اللوحة الاستراتيجية", icon: "chart" },
   ],
 };

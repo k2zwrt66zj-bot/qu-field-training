@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Award, CalendarCheck, CalendarX, Clock, MapPin } from "lucide-react";
+import { Award, BookOpen, CalendarCheck, CalendarX, CircleCheck, Clock, Hourglass, MapPin, Undo2 } from "lucide-react";
 import { requirePageRole } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/layout/page-header";
@@ -25,6 +25,7 @@ export default async function StudentHome() {
       student: true,
       organization: true,
       term: true,
+      section: { select: { mode: true } },
       fieldSupervisor: { include: { user: true } },
       academicSupervisor: { include: { user: true } },
       evaluations: { where: { status: { not: "DRAFT" } } },
@@ -54,8 +55,13 @@ export default async function StudentHome() {
     );
   }
 
-  const counts = await prisma.attendanceRecord.groupBy({ by: ["status"], where: { placementId: placement.id }, _count: true });
+  const simulation = placement.section?.mode === "SIMULATION";
+  const [counts, formCounts] = await Promise.all([
+    prisma.attendanceRecord.groupBy({ by: ["status"], where: { placementId: placement.id }, _count: true }),
+    prisma.fieldForm.groupBy({ by: ["status"], where: { placementId: placement.id }, _count: true }),
+  ]);
   const c = (s: string) => counts.find((x) => x.status === s)?._count ?? 0;
+  const fc = (...s: string[]) => formCounts.filter((x) => s.includes(x.status)).reduce((n, x) => n + x._count, 0);
   const hours = Math.round((placement.approvedMinutes / 60) * 10) / 10;
   const field = placement.evaluations.find((e) => e.type === "FIELD");
   const academic = placement.evaluations.find((e) => e.type === "ACADEMIC");
@@ -65,14 +71,29 @@ export default async function StudentHome() {
     <>
       <PageHeader
         title={`مرحباً ${user.name}`}
-        description={`${MAJOR_LABELS[placement.student.major]} · ${placement.term.name}`}
-        actions={<Link href="/student/attendance" className={buttonVariants({ size: "lg" })}><MapPin /> التحضير الآن</Link>}
+        description={`${MAJOR_LABELS[placement.student.major]} · ${placement.term.name}${simulation ? " · التدريب الميداني بالمحاكاة" : ""}`}
+        actions={
+          <>
+            <Link href="/portfolio" className={buttonVariants({ size: "lg", variant: simulation ? "default" : "outline" })}><BookOpen /> السجل المهني</Link>
+            {!simulation && <Link href="/student/attendance" className={buttonVariants({ size: "lg" })}><MapPin /> التحضير الآن</Link>}
+          </>
+        }
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="الساعات المعتمدة" value={`${hours} / ${placement.requiredHours}`} icon={Clock} />
-        <StatCard label="أيام الحضور" value={c("PRESENT") + c("LATE")} hint={`منها ${c("LATE")} تأخر`} icon={CalendarCheck} tone="success" />
-        <StatCard label="أيام الغياب" value={c("ABSENT")} hint={`${c("EXCUSED")} بعذر`} icon={CalendarX} tone={c("ABSENT") >= 3 ? "danger" : "teal"} />
+        {simulation ? (
+          <>
+            <StatCard label="نماذج معتمدة" value={fc("REVIEWED")} icon={CircleCheck} tone="success" />
+            <StatCard label="قيد المراجعة" value={fc("SUBMITTED", "SIGNED")} hint={`${fc("DRAFT")} مسودة`} icon={Hourglass} />
+            <StatCard label="معادة للتعديل" value={fc("RETURNED")} icon={Undo2} tone={fc("RETURNED") ? "danger" : "teal"} />
+          </>
+        ) : (
+          <>
+            <StatCard label="الساعات المعتمدة" value={hours} hint={`من ${placement.requiredHours} ساعة مطلوبة`} icon={Clock} />
+            <StatCard label="أيام الحضور" value={c("PRESENT") + c("LATE")} hint={`منها ${c("LATE")} تأخر`} icon={CalendarCheck} tone="success" />
+            <StatCard label="أيام الغياب" value={c("ABSENT")} hint={`${c("EXCUSED")} بعذر`} icon={CalendarX} tone={c("ABSENT") >= 3 ? "danger" : "teal"} />
+          </>
+        )}
         <StatCard label="الدرجة النهائية" value={grade ? toNum(grade.total) : "—"} hint={grade ? `${grade.letterGrade} · ${LETTER_GRADE_AR[grade.letterGrade]}` : "تظهر بعد الاعتماد"} icon={Award} tone="teal" />
       </div>
 
@@ -84,12 +105,14 @@ export default async function StudentHome() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex justify-between"><span className="text-muted-foreground">الحالة</span><Badge>{PLACEMENT_STATUS_LABELS[placement.status]}</Badge></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">المشرف الميداني</span><span>{placement.fieldSupervisor?.user.fullName ?? "—"}</span></div>
+            {!simulation && <div className="flex justify-between"><span className="text-muted-foreground">المشرف المؤسسي</span><span>{placement.fieldSupervisor?.user.fullName ?? "—"}</span></div>}
             <div className="flex justify-between"><span className="text-muted-foreground">المشرف الأكاديمي</span><span>{placement.academicSupervisor?.user.fullName ?? "—"}</span></div>
-            <div>
-              <div className="mb-1 flex justify-between text-xs text-muted-foreground"><span>إنجاز الساعات</span><span>{Math.round((hours / placement.requiredHours) * 100)}%</span></div>
-              <Progress value={(hours / placement.requiredHours) * 100} />
-            </div>
+            {!simulation && (
+              <div>
+                <div className="mb-1 flex justify-between text-xs text-muted-foreground"><span>إنجاز الساعات</span><span>{Math.round((hours / placement.requiredHours) * 100)}%</span></div>
+                <Progress value={(hours / placement.requiredHours) * 100} />
+              </div>
+            )}
           </CardContent>
         </Card>
 

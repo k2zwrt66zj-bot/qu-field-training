@@ -5,18 +5,18 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 import type { Role } from "@prisma/client";
-import { Activity, Award, BookOpen, Building2, ChartPie, FileText, House, LogOut, MapPin, Menu, PenLine, Settings, Users, X } from "lucide-react";
+import { Activity, Award, BookOpen, Building2, ChartPie, FileText, House, Inbox, LogOut, MapPin, Menu, PenLine, Settings, Users, X } from "lucide-react";
 import { NAV } from "./nav";
 import { ROLE_LABELS, INSTITUTION } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 import { LOGO } from "@/lib/brand";
 
-const ICONS = { home: House, "map-pin": MapPin, book: BookOpen, users: Users, pen: PenLine, activity: Activity, file: FileText, award: Award, chart: ChartPie, building: Building2, settings: Settings } as const;
+const ICONS = { home: House, "map-pin": MapPin, book: BookOpen, users: Users, pen: PenLine, activity: Activity, file: FileText, award: Award, chart: ChartPie, building: Building2, settings: Settings, inbox: Inbox } as const;
 
-export function AppShell({ user, children }: { user: { name: string; role: Role }; children: React.ReactNode }) {
+export function AppShell({ user, hiddenHrefs = [], children }: { user: { name: string; role: Role }; hiddenHrefs?: string[]; children: React.ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const items = NAV[user.role];
+  const items = NAV[user.role].filter((it) => !hiddenHrefs.includes(it.href));
 
   const nav = (
     <nav className="flex flex-col gap-1">

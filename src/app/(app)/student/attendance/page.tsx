@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { requirePageRole } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/layout/page-header";
@@ -13,6 +14,9 @@ export const dynamic = "force-dynamic";
 
 export default async function StudentAttendancePage() {
   const user = await requirePageRole("STUDENT");
+  // التدريب بالمحاكاة: لا تحضير جغرافي ولا سجل حضور (قرار القسم)
+  const latest = await prisma.placement.findFirst({ where: { student: { userId: user.id } }, orderBy: { startDate: "desc" }, select: { section: { select: { mode: true } } } });
+  if (latest?.section?.mode === "SIMULATION") redirect("/portfolio");
   const records = await prisma.attendanceRecord.findMany({
     where: { placement: { student: { userId: user.id } } },
     orderBy: { date: "desc" },
