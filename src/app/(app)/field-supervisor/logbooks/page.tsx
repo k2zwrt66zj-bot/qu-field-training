@@ -4,8 +4,11 @@ import { PageHeader } from "@/components/layout/page-header";
 import { LogbookSigning } from "@/components/supervisor/logbook-signing";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateAr } from "@/lib/time";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
+import { REPORT_TEMPLATES } from "@/lib/report-templates";
 
-export const metadata = { title: "السجلات بانتظار التوقيع" };
+export const metadata = { title: "السجلات والتقارير للتوقيع" };
 export const dynamic = "force-dynamic";
 
 const FIELDS = [
@@ -24,9 +27,35 @@ export default async function FieldLogbooksPage() {
     orderBy: { submittedAt: "asc" },
   });
 
+  const reports = await prisma.fieldReport.findMany({
+    where: { status: "SUBMITTED", placement: { fieldSupervisor: { userId: user.id } } },
+    include: { placement: { include: { student: { include: { user: true } } } } },
+    orderBy: { submittedAt: "asc" },
+  });
+
   return (
     <>
-      <PageHeader title="السجلات بانتظار التوقيع" description="راجع سجلات المتدربين ووقّعها إلكترونياً؛ يُحفظ مع التوقيع بصمة رقمية للمحتوى تمنع تعديله لاحقاً" />
+      <PageHeader title="السجلات والتقارير بانتظار التوقيع" description="راجع سجلات المتدربين ووقّعها إلكترونياً؛ يُحفظ مع التوقيع بصمة رقمية للمحتوى تمنع تعديله لاحقاً" />
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>التقارير الميدانية ({reports.length})</CardTitle>
+          <CardDescription>دراسات الحالة والتدخل والبحوث والمسوح — افتح التقرير لقراءته وتوقيعه</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {reports.length === 0 && <p className="text-sm text-muted-foreground">لا توجد تقارير بانتظار التوقيع</p>}
+          {reports.map((r) => (
+            <Link key={r.id} href={`/field-supervisor/reports/${r.id}`} className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border p-3 transition-colors hover:bg-accent">
+              <div className="min-w-[12rem] flex-1">
+                <div className="line-clamp-2 font-medium">{r.title}</div>
+                <div className="text-xs text-muted-foreground">{r.placement.student.user.fullName} · {REPORT_TEMPLATES[r.template].title}{r.submittedAt && ` · رُفع ${formatDateAr(r.submittedAt)}`}</div>
+              </div>
+              <ChevronLeft className="hidden size-4 text-muted-foreground sm:block" />
+            </Link>
+          ))}
+        </CardContent>
+      </Card>
+
+      <h2 className="mb-3 font-semibold">السجلات اليومية والأسبوعية ({logbooks.length})</h2>
       {logbooks.length === 0 && <Card><CardContent className="p-8 text-center text-muted-foreground">لا توجد سجلات بانتظار التوقيع</CardContent></Card>}
       <div className="space-y-4">
         {logbooks.map((l) => (

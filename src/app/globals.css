@@ -51,3 +51,10 @@
 /* خرائط Leaflet داخل واجهة RTL */
 .leaflet-container { direction: ltr; font-family: inherit; border-radius: var(--radius); isolation: isolate; z-index: 0; }
 .leaflet-popup-content { direction: rtl; text-align: right; }
+
+/* طباعة التقارير على A4 */
+@media print {
+  @page { size: A4; margin: 14mm; }
+  body { background: #fff; }
+  .report-print { border: 0; padding: 0; box-shadow: none; }
+}

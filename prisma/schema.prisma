@@ -196,6 +196,7 @@ model User {
   notes              SupervisorNote[]
   issuedLetters      Letter[]           @relation("LetterIssuer")
   approvedGrades     FinalGrade[]       @relation("GradeApprover")
+  reviewedReports    FieldReport[]      @relation("ReportReviewer")
   alerts             Alert[]
   auditLogs          AuditLog[]
 
@@ -505,14 +506,18 @@ model FieldReport {
   content         Json // حقول النموذج حسب القالب (انظر src/lib/report-templates.ts)
   status          DocumentStatus @default(DRAFT)
   submittedAt     DateTime?
-  academicComment String?
-  score           Decimal?       @db.Decimal(5, 2)
+  fieldComment    String? // ملاحظة المشرف الميداني (عند التوقيع أو الإعادة)
+  academicComment String? // ملاحظة المشرف الأكاديمي
+  score           Decimal?       @db.Decimal(5, 2) // درجة استرشادية من 100 يضعها المشرف الأكاديمي
+  reviewedAt      DateTime?
+  reviewedById    String?
   signatureId     String?        @unique
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
-  placement Placement  @relation(fields: [placementId], references: [id], onDelete: Cascade)
-  signature Signature? @relation(fields: [signatureId], references: [id])
+  placement  Placement  @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  signature  Signature? @relation(fields: [signatureId], references: [id])
+  reviewedBy User?      @relation("ReportReviewer", fields: [reviewedById], references: [id])
 
   @@index([placementId])
 }

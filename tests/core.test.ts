@@ -111,3 +111,39 @@ test("parseCoordinates: صيغ روابط الخرائط الشائعة", () => 
   assert.equal(parseCoordinates("https://maps.app.goo.gl/AbCdEf"), null);
   assert.equal(parseCoordinates("مستشفى بريدة"), null);
 });
+
+import { REPORT_TEMPLATES, completion, templatesForMajor, validateContent } from "../src/lib/report-templates.ts";
+
+test("report templates: التخصصات", () => {
+  assert.deepEqual(templatesForMajor("SOCIAL_WORK").map((t) => t.id), ["CASE_STUDY", "SOCIAL_INTERVENTION", "GROUP_WORK", "FINAL_REPORT"]);
+  assert.deepEqual(templatesForMajor("SOCIOLOGY").map((t) => t.id), ["FIELD_RESEARCH", "SOCIAL_SURVEY", "FINAL_REPORT"]);
+});
+
+test("report templates: مفاتيح القوالب فريدة", () => {
+  for (const t of Object.values(REPORT_TEMPLATES)) {
+    const keys = t.sections.flatMap((s) => s.fields.map((f) => f.key));
+    assert.equal(new Set(keys).size, keys.length, t.id);
+  }
+});
+
+test("validateContent: المسودة تقبل الناقص وترفض الحقول الغريبة والأنواع الخاطئة", () => {
+  assert.equal(validateContent("CASE_STUDY", { caseCode: "الحالة (أ)" }, false).ok, true);
+  assert.throws(() => validateContent("CASE_STUDY", { hacker: "x" }, false));
+  assert.throws(() => validateContent("CASE_STUDY", { age: "ثلاثون" }, false));
+  assert.throws(() => validateContent("CASE_STUDY", { age: 500 }, false));
+  assert.throws(() => validateContent("CASE_STUDY", { gender: "غير ذلك" }, false));
+  assert.throws(() => validateContent("CASE_STUDY", { plan: [{ goal: "x", extra: 1 }] }, false));
+});
+
+test("validateContent: الرفع يتطلب الحقول الإلزامية (بما فيها إقرار الموافقة وصفوف الجداول)", () => {
+  const r = validateContent("CASE_STUDY", { caseCode: "الحالة (أ)", plan: [{ goal: "", techniques: "" }] }, true);
+  assert.equal(r.ok, false);
+  assert.ok(r.missing.includes("أهداف التدخل"));
+  assert.ok(r.missing.some((m) => m.startsWith("أقر بالحصول")));
+  const full = {
+    orgOverview: "a", orgServices: "a", professionalRole: "a", activitiesSummary: "a",
+    skillsAcquired: "a", theoryPractice: "a", challenges: "a", reflection: "a",
+  };
+  assert.equal(validateContent("FINAL_REPORT", full, true).ok, true);
+  assert.deepEqual(completion(REPORT_TEMPLATES.FINAL_REPORT, full), { done: 8, total: 8, missing: [] });
+});

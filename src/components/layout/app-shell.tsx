@@ -51,9 +51,9 @@ export function AppShell({ user, children }: { user: { name: string; role: Role 
   );
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
+    <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr] print:block">
       {/* الشريط الجانبي (سطح المكتب) */}
-      <aside className="sticky top-0 hidden h-screen flex-col gap-4 bg-qu-green-800 p-4 lg:flex">
+      <aside className="sticky top-0 hidden h-screen flex-col gap-4 bg-qu-green-800 p-4 lg:flex print:!hidden">
         {brand}
         {nav}
         <div className="mt-auto rounded-lg bg-white/5 p-3 text-xs text-white/70">
@@ -76,7 +76,7 @@ export function AppShell({ user, children }: { user: { name: string; role: Role 
       )}
 
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b bg-card/90 px-4 backdrop-blur">
+        <header className="sticky top-0 z-40 flex h-16 print:hidden items-center gap-3 border-b bg-card/90 px-4 backdrop-blur">
           <button className="lg:hidden" onClick={() => setOpen(true)} aria-label="القائمة"><Menu /></button>
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-semibold">{user.name}</div>
@@ -86,10 +86,10 @@ export function AppShell({ user, children }: { user: { name: string; role: Role 
             <LogOut className="size-4" /> خروج
           </button>
         </header>
-        <main className="flex-1 p-4 pb-24 md:p-6 lg:pb-6">{children}</main>
+        <main className="flex-1 p-4 pb-24 md:p-6 lg:pb-6 print:p-0">{children}</main>
 
         {/* شريط تنقل سفلي للجوال (تجربة PWA) */}
-        <nav className="fixed inset-x-0 bottom-0 z-40 grid border-t bg-card lg:hidden" style={{ gridTemplateColumns: `repeat(${Math.min(items.length, 4)}, 1fr)` }}>
+        <nav className="fixed inset-x-0 bottom-0 z-40 grid border-t bg-card lg:hidden print:hidden" style={{ gridTemplateColumns: `repeat(${Math.min(items.length, 4)}, 1fr)` }}>
           {/* أول 4 روابط فقط؛ البقية في القائمة الجانبية */}
           {items.slice(0, 4).map((it) => {
             const Icon = ICONS[it.icon as keyof typeof ICONS];

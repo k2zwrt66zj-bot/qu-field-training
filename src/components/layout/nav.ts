@@ -6,13 +6,17 @@ export const NAV: Record<Role, NavItem[]> = {
   STUDENT: [
     { href: "/student", label: "الرئيسية", icon: "home" },
     { href: "/student/attendance", label: "التحضير الميداني", icon: "map-pin" },
-    { href: "/student/logbooks", label: "السجلات والتقارير", icon: "book" },
+    { href: "/student/logbooks", label: "السجلات اليومية", icon: "book" },
+    { href: "/student/reports", label: "التقارير الميدانية", icon: "file" },
   ],
   FIELD_SUPERVISOR: [
     { href: "/field-supervisor", label: "المتدربون والحضور", icon: "users" },
-    { href: "/field-supervisor/logbooks", label: "السجلات بانتظار التوقيع", icon: "pen" },
+    { href: "/field-supervisor/logbooks", label: "السجلات والتقارير للتوقيع", icon: "pen" },
   ],
-  ACADEMIC_SUPERVISOR: [{ href: "/academic-supervisor", label: "طلابي", icon: "users" }],
+  ACADEMIC_SUPERVISOR: [
+    { href: "/academic-supervisor", label: "طلابي", icon: "users" },
+    { href: "/academic-supervisor/reports", label: "تقارير الطلاب", icon: "file" },
+  ],
   TRAINING_HEAD: [
     { href: "/training-head", label: "لوحة المتابعة اللحظية", icon: "activity" },
     { href: "/training-head/placements", label: "التوزيع والخطابات", icon: "file" },

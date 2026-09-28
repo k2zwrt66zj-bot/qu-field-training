@@ -4,6 +4,11 @@ import { PrismaClient, type Gender, type Major, type OrgCategory } from "@prisma
 import bcrypt from "bcryptjs";
 import { riyadhDateOnly } from "../src/lib/time";
 import { calculateFinalGrade, scoreEvaluation } from "../src/lib/grading/engine";
+import { validateContent } from "../src/lib/report-templates";
+import { signedPayload } from "../src/lib/report-signing";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 
 const prisma = new PrismaClient();
 const PASSWORD = "Qu@12345";
@@ -283,6 +288,78 @@ async function main() {
       },
     });
   }
+
+  // ---------- تقارير ميدانية نموذجية ----------
+  // توقيع نموذجي (PNG) لأغراض العرض
+  const SIG = readFileSync(path.join(__dirname, "fixtures/sample-signature.txt"), "utf8").trim();
+  const sw = placements.find((p) => p.student.major === "SOCIAL_WORK")!;
+  const so = placements.find((p) => p.student.major === "SOCIOLOGY")!;
+  const d = (days: number) => new Date(today.getTime() - days * 86_400_000).toISOString().slice(0, 10);
+
+  const caseContent = validateContent("CASE_STUDY", {
+    caseCode: "الحالة (م)", gender: "ذكر", age: 58, maritalStatus: "متزوج/ة", education: "ثانوي", occupation: "متقاعد",
+    referralSource: "تحويل داخلي", firstContact: d(14),
+    presentingProblem: "يعاني العميل من اكتئاب وانسحاب اجتماعي بعد تشخيصه بمرض مزمن، مع رفض الالتزام بالخطة العلاجية.",
+    problemHistory: "بدأت الأعراض قبل ستة أشهر عقب التشخيص، وتفاقمت بعد التقاعد وقلة التواصل مع الأبناء.",
+    interviews: [
+      { date: d(14), source: "العميل", purpose: "مقابلة أولية وبناء علاقة مهنية", outcome: "إبداء رغبة مبدئية في التعاون" },
+      { date: d(10), source: "الأسرة", purpose: "فهم البيئة الأسرية", outcome: "ضعف التواصل الأسري وقلق الزوجة" },
+      { date: d(7), source: "فريق العمل", purpose: "التنسيق مع الطبيب المعالج", outcome: "أهمية الالتزام بالعلاج الدوائي" },
+    ],
+    familyContext: "يعيش مع زوجته، وللأسرة أربعة أبناء متزوجون يقيمون خارج المدينة.",
+    socioEconomic: "دخل تقاعدي كافٍ، ولا توجد صعوبات مادية مؤثرة.",
+    strengths: "دعم الزوجة، التدين، خبرة حياتية طويلة، وثقة بالفريق الطبي.",
+    diagnosis: "اضطراب تكيفي مع مزاج مكتئب مرتبط بالمرض المزمن وفقدان الدور بعد التقاعد.",
+    theoreticalModel: "المعرفي السلوكي",
+    modelJustification: "لوجود أفكار سلبية تلقائية حول المرض والمستقبل قابلة للتعديل.",
+    plan: [
+      { goal: "تحسين الالتزام بالخطة العلاجية", techniques: "التثقيف الصحي والتعاقد", timeline: "أسبوعان", indicator: "انتظام المواعيد" },
+      { goal: "تعديل الأفكار السلبية", techniques: "إعادة البناء المعرفي", timeline: "3 أسابيع", indicator: "مقياس بيك قبلي/بعدي" },
+      { goal: "تعزيز المساندة الأسرية", techniques: "مقابلة أسرية مشتركة", timeline: "أسبوع", indicator: "زيارات الأبناء" },
+    ],
+    progress: "تحسن ملحوظ في الالتزام بالمواعيد وانخفاض درجة الاكتئاب على المقياس.",
+    evaluation: "تمكنت من تطبيق مهارات المقابلة والتعاقد، وأحتاج لتطوير مهارة إدارة الجلسات الأسرية.",
+    recommendations: "المتابعة الشهرية وإحالة الأسرة لبرنامج الدعم النفسي بالمستشفى.",
+    consent: true,
+  }, true);
+  const signedAt = new Date(today.getTime() - 2 * 86_400_000);
+  const caseReport = await prisma.fieldReport.create({
+    data: { placementId: sw.id, template: "CASE_STUDY", title: "دراسة حالة لمريض مزمن يعاني من انسحاب اجتماعي", content: caseContent.content as object, status: "SUBMITTED", submittedAt: new Date(today.getTime() - 3 * 86_400_000) },
+  });
+  const swSup = await prisma.fieldSupervisorProfile.findUniqueOrThrow({ where: { id: sw.org.supervisorId } });
+  const sig = await prisma.signature.create({
+    data: {
+      signerId: swSup.userId, imageData: SIG, signedAt,
+      contentHash: createHash("sha256").update(JSON.stringify(signedPayload(caseReport))).digest("hex"),
+    },
+  });
+  await prisma.fieldReport.update({ where: { id: caseReport.id }, data: { status: "SIGNED", signatureId: sig.id, fieldComment: "دراسة جيدة وواقعية، وتعكس ما تم فعلاً مع الحالة." } });
+
+  const surveyContent = validateContent("SOCIAL_SURVEY", {
+    surveyTitle: "اتجاهات المستفيدين نحو الخدمات الاجتماعية المقدمة", objective: "قياس رضا المستفيدين وتحديد أولويات التطوير.",
+    area: "مدينة بريدة", population: "المستفيدون المسجلون لدى الجهة", sampleMethod: "عشوائية بسيطة", sampleSize: 120, responses: 97,
+    instrument: "استبانة إلكترونية", period: "أسبوعان",
+    variables: [
+      { name: "الجنس", kind: "ديموغرافي", measure: "اسمي" },
+      { name: "مدة الاستفادة", kind: "مستقل", measure: "رتبي (أقل من سنة، 1-3، أكثر من 3)" },
+      { name: "الرضا عن الخدمات", kind: "تابع", measure: "مقياس ليكرت خماسي" },
+    ],
+    indicators: [
+      { indicator: "راضون جداً", count: 31, percent: 32 },
+      { indicator: "راضون", count: 42, percent: 43.3 },
+      { indicator: "محايدون", count: 15, percent: 15.5 },
+      { indicator: "غير راضين", count: 9, percent: 9.2 },
+    ],
+    keyFindings: "ثلاثة أرباع المستفيدين راضون، وتتركز الملاحظات حول طول مدة الانتظار.",
+    limitations: "اقتصار العينة على المستفيدين الحاليين دون المنقطعين.",
+    recommendations: "تطوير نظام المواعيد الإلكتروني، ودراسة أسباب انقطاع المستفيدين.",
+  }, true);
+  await prisma.fieldReport.create({
+    data: { placementId: so.id, template: "SOCIAL_SURVEY", title: "مسح رضا المستفيدين عن الخدمات الاجتماعية", content: surveyContent.content as object, status: "SUBMITTED", submittedAt: new Date(today.getTime() - 86_400_000) },
+  });
+  await prisma.fieldReport.create({
+    data: { placementId: sw.id, template: "FINAL_REPORT", title: "التقرير الختامي للتدريب الميداني", content: { orgOverview: "مستشفى حكومي يقدم خدمات علاجية..." } },
+  });
 
   // ---------- خطابات توجيه صادرة ----------
   let n = 1;
