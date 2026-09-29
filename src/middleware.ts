@@ -1,6 +1,7 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import type { Role } from "@prisma/client";
+import { SESSION_COOKIE_NAME } from "@/lib/auth/config";
 
 // حماية المسارات حسب الدور (طبقة أولى؛ الطبقة الثانية داخل كل صفحة ومسار API)
 const ROUTE_ROLES: [string, Role[]][] = [
@@ -17,11 +18,17 @@ export default withAuth(
     const path = req.nextUrl.pathname;
     const rule = ROUTE_ROLES.find(([prefix]) => path.startsWith(prefix));
     if (rule && role && role !== "ADMIN" && !rule[1].includes(role)) {
-      return NextResponse.redirect(new URL("/", req.url));
+      // مسار نسبي إلى نطاق الطلب الحالي
+      return NextResponse.redirect(new URL("/", req.nextUrl.origin));
     }
     return NextResponse.next();
   },
-  { pages: { signIn: "/login" } }
+  {
+    // غير المسجّل يُحوَّل إلى /login على نطاق الطلب الحالي مع callbackUrl نسبي
+    pages: { signIn: "/login" },
+    // اسم كوكي الجلسة نفسه المعرّف في إعدادات NextAuth (وإلا لا يجده الـ middleware)
+    cookies: { sessionToken: { name: SESSION_COOKIE_NAME } },
+  }
 );
 
 export const config = {

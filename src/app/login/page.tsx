@@ -1,12 +1,13 @@
 "use client";
 import { Suspense, useState } from "react";
 import Image from "next/image";
-import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { INSTITUTION } from "@/lib/labels";
 import { LOGO } from "@/lib/brand";
+import { safeRelativePath } from "@/lib/auth/redirect";
+import { credentialsLogin } from "@/lib/auth/client-login";
 
 function LoginForm() {
   const router = useRouter();
@@ -19,10 +20,13 @@ function LoginForm() {
     setLoading(true);
     setError(null);
     const fd = new FormData(e.currentTarget);
-    const res = await signIn("credentials", { email: fd.get("email"), password: fd.get("password"), redirect: false });
+    const result = await credentialsLogin(String(fd.get("email") ?? ""), String(fd.get("password") ?? ""));
     setLoading(false);
-    if (res?.error) return setError("البريد الإلكتروني أو كلمة المرور غير صحيحة");
-    router.replace(params.get("callbackUrl") ?? "/");
+    if (result === "invalid") return setError("البريد الإلكتروني أو كلمة المرور غير صحيحة");
+    if (result === "error") return setError("تعذر الاتصال بالخادم، حاول مرة أخرى");
+    // مسار نسبي آمن فقط: لا إعادة توجيه إلى موقع خارجي عبر ?callbackUrl=https://…
+    const next = safeRelativePath(params.get("callbackUrl"), "/");
+    router.replace(next.startsWith("/login") ? "/" : next);
     router.refresh();
   }
 

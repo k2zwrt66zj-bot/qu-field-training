@@ -20,6 +20,7 @@
     "test:e2e:ui": "node --env-file=.env tests/e2e/ui.e2e.mjs",
     "test:e2e:phase4": "node --env-file=.env tests/e2e/phase4.e2e.mjs",
     "test:e2e:phase5": "node --env-file=.env tests/e2e/phase5.e2e.mjs",
+    "test:e2e:auth": "node --env-file=.env tests/e2e/auth.e2e.mjs",
     "test:e2e:all": "npm run db:seed && npm run test:e2e:forms && npm run test:e2e:phase4 && npm run test:e2e:phase5 && npm run db:seed && npm run db:migrate-legacy -- --apply && npm run test:e2e:ui",
     "db:migrate-legacy": "tsx prisma/data-migrations/legacy-to-forms.ts",
     "demo:reset": "npm run db:seed && npm run db:migrate-legacy -- --apply",
