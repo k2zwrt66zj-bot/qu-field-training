@@ -4,7 +4,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   STUDENT: "طالب / طالبة",
   FIELD_SUPERVISOR: "مشرف ميداني",
   ACADEMIC_SUPERVISOR: "مشرف أكاديمي",
-  TRAINING_HEAD: "رئيس وحدة التدريب الميداني",
+  TRAINING_HEAD: "رئيسة وحدة التدريب الميداني",
   DEPARTMENT_HEAD: "رئيس القسم",
   ADMIN: "مدير النظام",
 };
@@ -81,7 +81,7 @@ export const INSTITUTION = {
   department: "قسم الاجتماع والخدمة الاجتماعية",
   unit: "وحدة التدريب الميداني",
   departmentHead: "د. عمر النملة",
-  trainingHead: "د. عبدالله التيجاني",
+  trainingHead: "بشرى محمد الدبيخي",
   // الترويسة الإنجليزية كما في النماذج الرسمية
   en: {
     country: "Kingdom of Saudi Arabia",

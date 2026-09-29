@@ -152,7 +152,7 @@ ${opts.printButton ? `<div class="toolbar"><button onclick="window.print()">طب
   <p>شاكرين لكم حسن تعاونكم،،، وتقبلوا وافر التحية والتقدير.</p>
 
   <div class="signs">
-    <div><div class="role">رئيس وحدة التدريب الميداني</div><div>${INSTITUTION.trainingHead}</div><div class="line"></div></div>
+    <div><div class="role">رئيسة وحدة التدريب الميداني</div><div>${INSTITUTION.trainingHead}</div><div class="line"></div></div>
     <div><div class="role">رئيس القسم</div><div>${INSTITUTION.departmentHead}</div><div class="line"></div></div>
   </div>
 

@@ -62,7 +62,7 @@ async function act(p, label, { comment } = {}) {
 }
 const waitSaved = (p) => p.getByText("حُفظت كل التعديلات").waitFor({ timeout: 15000 });
 
-const AC = "academic1@qu.edu.sa", S1 = "441100001@qu.edu.sa", F1 = "field1@example.sa", TH = "abdullah.altijani@qu.edu.sa", DH = "omar.alnamlah@qu.edu.sa";
+const AC = "academic1@qu.edu.sa", S1 = "441100001@qu.edu.sa", F1 = "field1@example.sa", TH = "bushra.aldubaikhi@qu.edu.sa", DH = "omar.alnamlah@qu.edu.sa";
 
 // =====================================================================
 section("أ) الاجتماع الإشرافي الجماعي: إعداد رئيس الاجتماع");

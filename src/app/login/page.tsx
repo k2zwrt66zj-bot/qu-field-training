@@ -63,7 +63,7 @@ export default function LoginPage() {
           </p>
         </div>
         <div className="relative text-xs text-white/60">
-          رئيس القسم: {INSTITUTION.departmentHead} · رئيس وحدة التدريب الميداني: {INSTITUTION.trainingHead}
+          رئيس القسم: {INSTITUTION.departmentHead} · رئيسة وحدة التدريب الميداني: {INSTITUTION.trainingHead}
         </div>
       </div>
       <div className="flex items-center justify-center p-6">

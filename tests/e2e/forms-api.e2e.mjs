@@ -42,7 +42,7 @@ const sig = (slot, extra = {}) => ({ slot, imageData: SIG, ...extra });
 
 // =====================================================================
 section("أ) المباشرة: طالب موزَّع حديثاً → توقيع ثلاثي الأطراف → تفعيل التدريب");
-const TH = "abdullah.altijani@qu.edu.sa";
+const TH = "bushra.aldubaikhi@qu.edu.sa";
 const termId = sql(`select id from "AcademicTerm" where "isActive"`);
 let r = await api(TH, "POST", "/api/placements/auto-assign", { termId, dryRun: false });
 check(r.status === 200 && r.json.assigned.length > 0, `التوزيع الآلي نفّذ (${r.json?.assigned?.length} طالب)`);

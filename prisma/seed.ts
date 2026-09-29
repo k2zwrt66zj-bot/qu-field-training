@@ -54,7 +54,7 @@ async function main() {
     prisma.user.create({ data: { email, fullName, role, gender, passwordHash, phone } });
 
   await mkUser("omar.alnamlah@qu.edu.sa", "د. عمر النملة", "DEPARTMENT_HEAD");
-  await mkUser("abdullah.altijani@qu.edu.sa", "د. عبدالله التيجاني", "TRAINING_HEAD");
+  await mkUser("bushra.aldubaikhi@qu.edu.sa", "بشرى محمد الدبيخي", "TRAINING_HEAD");
   await mkUser("admin@qu.edu.sa", "مدير النظام", "ADMIN");
 
   // ---------- المشرفون الأكاديميون ----------
@@ -282,7 +282,7 @@ async function main() {
   }
 
   // ---------- تقييمات مرصودة لبعض الطلاب + احتساب الدرجات ----------
-  const leader = await prisma.user.findUniqueOrThrow({ where: { email: "abdullah.altijani@qu.edu.sa" } });
+  const leader = await prisma.user.findUniqueOrThrow({ where: { email: "bushra.aldubaikhi@qu.edu.sa" } });
   for (const p of placements.slice(0, 8)) {
     const level = 0.7 + rand() * 0.3;
     const fieldUser = await prisma.fieldSupervisorProfile.findUniqueOrThrow({ where: { id: p.org.supervisorId } });
@@ -443,7 +443,7 @@ async function main() {
   console.log("✅ تمت تعبئة البيانات التجريبية");
   console.log(`   كلمة المرور لجميع الحسابات: ${PASSWORD}`);
   console.log("   رئيس القسم:            omar.alnamlah@qu.edu.sa");
-  console.log("   رئيس التدريب الميداني: abdullah.altijani@qu.edu.sa");
+  console.log("   رئيسة وحدة التدريب:    bushra.aldubaikhi@qu.edu.sa");
   console.log("   مشرف أكاديمي:          academic1@qu.edu.sa");
   console.log("   مشرف ميداني:           field1@example.sa");
   console.log("   طالب:                  441100001@qu.edu.sa");

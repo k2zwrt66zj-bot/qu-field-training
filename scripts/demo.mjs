@@ -51,7 +51,7 @@ try {
   • طالب محاكاة:                         441100025@qu.edu.sa
   • مشرف مؤسسي (كشوف الحضور والتوقيع):   field1@example.sa
   • مشرف أكاديمي (الاعتماد والاجتماعات): academic1@qu.edu.sa
-  • رئيس وحدة التدريب:                   abdullah.altijani@qu.edu.sa
+  • رئيسة وحدة التدريب:                  bushra.aldubaikhi@qu.edu.sa
   • رئيس القسم:                          omar.alnamlah@qu.edu.sa
   للإيقاف: Ctrl+C
 ═══════════════════════════════════════════════════════════════`);

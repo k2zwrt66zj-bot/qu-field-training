@@ -36,7 +36,7 @@ const html = async (email, url) => (await fetchAs(email, `${url}?format=html`)).
 const OFFICIAL = ["المملكة العربية السعودية", "وزارة التعليم", "جامعة القصيم", "كلية اللغات والعلوم الإنسانية", "قسم الاجتماع والخدمة الاجتماعية", "Qassim University", "College of Languages &amp; Social Sciences"];
 const hasHeader = (h) => OFFICIAL.every((s) => h.includes(s));
 
-const TH = "abdullah.altijani@qu.edu.sa", AC = "academic1@qu.edu.sa", F1 = "field1@example.sa", S1 = "441100001@qu.edu.sa", DH = "omar.alnamlah@qu.edu.sa";
+const TH = "bushra.aldubaikhi@qu.edu.sa", AC = "academic1@qu.edu.sa", F1 = "field1@example.sa", S1 = "441100001@qu.edu.sa", DH = "omar.alnamlah@qu.edu.sa";
 const formOf = (uid, kind, extra = "") => sql(`select f.id from "FieldForm" f join "Placement" p on p.id=f."placementId" join "StudentProfile" s on s.id=p."studentId" where s."universityId"='${uid}' and f.kind='${kind}' and f.status<>'DRAFT' ${extra} order by f.sequence limit 1`);
 const plOf = (uid) => sql(`select p.id from "Placement" p join "StudentProfile" s on s.id=p."studentId" where s."universityId"='${uid}'`);
 

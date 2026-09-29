@@ -69,7 +69,7 @@ const badge = (p) => p.locator("header .rounded-full").allInnerTexts().then((a) 
 
 // =====================================================================
 section("أ) طالب ميداني: السجل المهني قبل المباشرة");
-const TH = "abdullah.altijani@qu.edu.sa", DH = "omar.alnamlah@qu.edu.sa";
+const TH = "bushra.aldubaikhi@qu.edu.sa", DH = "omar.alnamlah@qu.edu.sa";
 const th = await as(TH);
 const termId = sql(`select id from "AcademicTerm" where "isActive"`);
 const assigned = await th.request.post(B + "/api/placements/auto-assign", { data: { termId, dryRun: false } });
