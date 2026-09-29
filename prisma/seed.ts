@@ -54,7 +54,7 @@ async function main() {
     prisma.user.create({ data: { email, fullName, role, gender, passwordHash, phone } });
 
   await mkUser("omar.alnamlah@qu.edu.sa", "د. عمر النملة", "DEPARTMENT_HEAD");
-  await mkUser("bushra.aldubaikhi@qu.edu.sa", "بشرى محمد الدبيخي", "TRAINING_HEAD");
+  await mkUser("bushra.aldubaikhi@qu.edu.sa", "د. بشرى محمد الدبيخي", "TRAINING_HEAD");
   await mkUser("admin@qu.edu.sa", "مدير النظام", "ADMIN");
 
   // ---------- المشرفون الأكاديميون ----------
