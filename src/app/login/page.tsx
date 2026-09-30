@@ -8,6 +8,7 @@ import { INSTITUTION } from "@/lib/labels";
 import { LOGO } from "@/lib/brand";
 import { safeRelativePath } from "@/lib/auth/redirect";
 import { credentialsLogin } from "@/lib/auth/client-login";
+import { DEVELOPER_CREDIT } from "@/lib/developer";
 
 function LoginForm() {
   const router = useRouter();
@@ -81,6 +82,7 @@ export default function LoginPage() {
           <Suspense>
             <LoginForm />
           </Suspense>
+          <p className="mt-10 text-center text-xs text-muted-foreground">{DEVELOPER_CREDIT}</p>
         </div>
       </div>
     </div>

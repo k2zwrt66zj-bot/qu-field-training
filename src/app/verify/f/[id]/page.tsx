@@ -9,6 +9,7 @@ import { formContentHash } from "@/server/forms/service";
 import { formDisplayTitle } from "@/lib/forms/catalog";
 import { customTitle } from "@/lib/forms/ui/custom";
 import { formatDateAr } from "@/lib/time";
+import { DEVELOPER_CREDIT } from "@/lib/developer";
 
 export const metadata = { title: "التحقق من مستند" };
 export const dynamic = "force-dynamic";
@@ -27,7 +28,7 @@ export default async function VerifyFormPage({ params, searchParams }: { params:
   const initials = form?.placement.student.user.fullName.split(" ").map((w) => w[0]).join(".") ?? "";
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4">
       <div className="w-full max-w-md rounded-2xl border bg-card p-8 text-center shadow-sm">
         <Image src={LOGO.full} alt="جامعة القصيم" width={206} height={72} className="mx-auto" />
         <div className="mt-2 text-sm text-muted-foreground">{INSTITUTION.university} · {INSTITUTION.unit}</div>
@@ -51,6 +52,7 @@ export default async function VerifyFormPage({ params, searchParams }: { params:
           </>
         )}
       </div>
+      <p className="text-xs text-muted-foreground">{DEVELOPER_CREDIT}</p>
     </div>
   );
 }

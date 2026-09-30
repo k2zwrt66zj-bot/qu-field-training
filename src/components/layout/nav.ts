@@ -5,6 +5,9 @@ export interface NavItem { href: string; label: string; icon: string }
 /** روابط لا تنطبق على طلاب التدريب بالمحاكاة (لا مقر تدريب فعلي — قرار القسم) */
 export const SITE_BOUND_HREFS = ["/student/attendance"];
 
+/** روابط مشتركة لجميع المستخدمين: أسفل القائمة الجانبية (لا في الشريط السفلي للجوال) */
+export const COMMON_NAV: NavItem[] = [{ href: "/developer", label: "عن المنصة والمطور", icon: "info" }];
+
 export const NAV: Record<Role, NavItem[]> = {
   STUDENT: [
     { href: "/student", label: "الرئيسية", icon: "home" },
