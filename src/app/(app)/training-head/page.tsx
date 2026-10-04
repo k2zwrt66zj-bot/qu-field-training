@@ -35,7 +35,7 @@ export default async function TrainingHeadDashboard() {
         <StatCard label="تنبيهات حرجة" value={k.criticalAlerts} icon={CircleAlert} tone={k.criticalAlerts ? "danger" : "default"} />
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_400px]">
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_400px] [&>*]:min-w-0">
         <Card>
           <CardHeader>
             <CardTitle>الحضور خلال آخر أسبوعين</CardTitle>

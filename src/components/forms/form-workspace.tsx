@@ -25,7 +25,6 @@ import { cn } from "@/lib/utils";
 
 export interface WorkspaceContext {
   caseStudies: Option[];
-  hasStamp: boolean;
   directorName: string | null;
   fieldSupervisor: string | null;
   academicSupervisor: string | null;
@@ -265,7 +264,6 @@ export function FormWorkspace({ initial, context }: { initial: PresentedForm; co
           slots={slotsFor(dialog)}
           withScore={dialog === "ACADEMIC_APPROVE" && form.policy.academicScore}
           directorDefault={context.directorName}
-          hasStamp={context.hasStamp}
           onClose={() => setDialog(null)}
           onConfirm={runTransition}
         />

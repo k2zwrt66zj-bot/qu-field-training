@@ -57,9 +57,9 @@ export const SITUATION_TITLES: Record<SituationDomain, string> = {
 export const SLOT_LABELS: Record<SignatureSlot, string> = {
   STUDENT: "توقيع الطالب/ـة",
   FIELD_SUPERVISOR: "توقيع المشرف المؤسسي",
-  ORG_DIRECTOR: "مدير المؤسسة (الختم والتوقيع)",
+  ORG_DIRECTOR: "مدير المؤسسة (التوقيع)",
   ACADEMIC_SUPERVISOR: "المشرف الأكاديمي",
-  TRAINING_HEAD: "رئيس وحدة التدريب الميداني",
+  TRAINING_HEAD: "رئيسة وحدة التدريب الميداني",
   MEETING_CHAIR: "رئيس الاجتماع",
   MEETING_SECRETARY: "أمين الاجتماع",
   MEETING_MEMBER: "الأعضاء",

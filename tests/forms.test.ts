@@ -254,7 +254,7 @@ test("grading: المحاكاة تنقل وزن المشرف المؤسسي كا
   assert.equal(sim.academicComponent, 68, "0.85 × 80");
   assert.equal(sim.total, 88);
   assert.deepEqual(sim.details.effectiveWeights, { fieldWeight: 0, academicWeight: 80, attendanceWeight: 20 });
-  assert.ok(!sim.details.missing.includes("تقييم المشرف الميداني"), "لا يُطلب تقييم ميداني");
+  assert.ok(!sim.details.missing.includes("تقييم المشرف المؤسسي"), "لا يُطلب تقييم المشرف المؤسسي");
   assert.equal(sim.passed, true);
   // تقييم ميداني قديم (إن وُجد خطأً) لا يُحتسب
   assert.equal(calculateFinalGrade({ ...input, fieldPercentage: 100 }).total, 88);

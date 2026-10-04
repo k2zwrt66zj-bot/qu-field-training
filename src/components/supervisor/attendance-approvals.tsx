@@ -19,7 +19,7 @@ export interface PendingRecord {
   riskFlags: string[];
 }
 
-/** جدول اعتماد الحضور اليومي للمشرف الميداني (فردي أو جماعي) */
+/** جدول اعتماد الحضور اليومي للمشرف المؤسسي (فردي أو جماعي) */
 export function AttendanceApprovals({ records, flagLabels }: { records: PendingRecord[]; flagLabels: Record<string, string> }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());

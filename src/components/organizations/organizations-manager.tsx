@@ -134,7 +134,7 @@ export function OrganizationsManager({ orgs }: { orgs: OrgRow[] }) {
         )}
       </Dialog>
 
-      <Dialog open={supFor !== null} onClose={() => setSupFor(null)} title={`المشرفون الميدانيون — ${supFor?.name ?? ""}`} className="max-w-2xl">
+      <Dialog open={supFor !== null} onClose={() => setSupFor(null)} title={`المشرفون المؤسسيون — ${supFor?.name ?? ""}`} className="max-w-2xl">
         {supFor && <SupervisorsPanel org={supFor} />}
       </Dialog>
     </div>
@@ -177,7 +177,7 @@ function SupervisorsPanel({ org }: { org: OrgRow }) {
           });
         }}
       >
-        <h4 className="font-semibold md:col-span-2">إضافة مشرف ميداني</h4>
+        <h4 className="font-semibold md:col-span-2">إضافة مشرف مؤسسي</h4>
         <div className="space-y-1"><Label htmlFor="sup-name">الاسم</Label><Input id="sup-name" name="fullName" required minLength={3} /></div>
         <div className="space-y-1"><Label htmlFor="sup-email">البريد الإلكتروني</Label><Input id="sup-email" name="email" type="email" dir="ltr" required /></div>
         <div className="space-y-1"><Label htmlFor="sup-phone">الجوال</Label><Input id="sup-phone" name="phone" dir="ltr" /></div>

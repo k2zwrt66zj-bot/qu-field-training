@@ -19,12 +19,10 @@ export default async function FormPage({ params }: { params: Promise<{ id: strin
   const { form, actor } = loaded;
   const p = form.placement;
 
-  const [caseStudies, stamp] = await Promise.all([
+  const caseStudies =
     form.kind === "INTERVIEW"
-      ? prisma.fieldForm.findMany({ where: { placementId: p.id, kind: "CASE_STUDY" }, select: { id: true, sequence: true, caseStudy: { select: { caseAlias: true } } }, orderBy: { sequence: "asc" } })
-      : Promise.resolve([]),
-    form.kind === "COMMENCEMENT" ? prisma.attachment.count({ where: { organizationId: p.organizationId, kind: "STAMP" } }) : Promise.resolve(0),
-  ]);
+      ? await prisma.fieldForm.findMany({ where: { placementId: p.id, kind: "CASE_STUDY" }, select: { id: true, sequence: true, caseStudy: { select: { caseAlias: true } } }, orderBy: { sequence: "asc" } })
+      : [];
 
   const backHref = user.role === "STUDENT" ? "/portfolio" : ["FIELD_SUPERVISOR", "ACADEMIC_SUPERVISOR"].includes(user.role) ? "/queue" : `/portfolio/${p.id}`;
   return (
@@ -32,7 +30,6 @@ export default async function FormPage({ params }: { params: Promise<{ id: strin
       initial={presentForm(form, actor)}
       context={{
         caseStudies: caseStudies.map((c) => ({ value: c.id, label: `دراسة الحالة ${c.sequence}${c.caseStudy?.caseAlias ? ` — ${c.caseStudy.caseAlias}` : ""}` })),
-        hasStamp: stamp > 0,
         directorName: p.organization.directorName,
         fieldSupervisor: p.fieldSupervisor?.user.fullName ?? null,
         academicSupervisor: p.academicSupervisor?.user.fullName ?? null,

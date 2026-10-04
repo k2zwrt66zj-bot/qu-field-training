@@ -109,7 +109,7 @@ export function OrganizationEditor({
   }
 
   function remove() {
-    if (!orgId || !confirm("حذف الجهة نهائياً؟ سيتم تعطيل حسابات مشرفيها الميدانيين.")) return;
+    if (!orgId || !confirm("حذف الجهة نهائياً؟ سيتم تعطيل حسابات مشرفيها المؤسسيين.")) return;
     start(async () => {
       const res = await fetch(`/api/organizations/${orgId}`, { method: "DELETE" });
       const json = await res.json();

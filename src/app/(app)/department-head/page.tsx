@@ -62,7 +62,7 @@ export default async function ExecutiveDashboard() {
       <Card className="mt-4">
         <CardHeader>
           <CardTitle>أداء جهات التدريب الشريكة</CardTitle>
-          <CardDescription>نسبة الانتظام، إنجاز الساعات، ومتوسط تقييم المشرفين الميدانيين</CardDescription>
+          <CardDescription>نسبة الانتظام، إنجاز الساعات، ومتوسط تقييم المشرفين المؤسسيين</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <Table>

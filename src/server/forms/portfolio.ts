@@ -159,7 +159,7 @@ export async function loadPortfolio(user: SessionUser, placementId: string | nul
       const c = first("COMMENCEMENT");
       if (!c) steps.push({ text: "ابدأ بنموذج مباشرة التدريب — لا تُتاح بقية النماذج قبل توقيعه من المشرف المؤسسي ومدير المؤسسة", tone: "warning" });
       else if (c.status === "DRAFT") steps.push({ text: "أكمل نموذج المباشرة ووقّعه ثم ارفعه", href: `/forms/${c.id}`, tone: "warning" });
-      else if (c.status === "SUBMITTED") steps.push({ text: "نموذج المباشرة بانتظار توقيع المشرف المؤسسي وختم المؤسسة", href: `/forms/${c.id}`, tone: "info" });
+      else if (c.status === "SUBMITTED") steps.push({ text: "نموذج المباشرة بانتظار توقيع المشرف المؤسسي ومدير المؤسسة", href: `/forms/${c.id}`, tone: "info" });
     }
     if (commenced) {
       if (mode === "FIELD" && !first("ORGANIZATION_PROFILE")) steps.push({ text: "أعدّ التقرير التعريفي بمؤسسة التدريب", tone: "info" });

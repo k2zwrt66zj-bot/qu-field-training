@@ -19,7 +19,7 @@ export const GET = handler(async (req: Request) => {
 
   // الأوزان من الفصل؛ طلاب المحاكاة: المكوّن الميداني «لا ينطبق» ووزنه ضمن الأكاديمي
   const w = rows[0]?.placement.term ?? { fieldWeight: 40, academicWeight: 40, attendanceWeight: 20 };
-  const header = ["م", "الرقم الجامعي", "اسم الطالب/ة", "التخصص", "نوع التدريب", "جهة التدريب", `المشرف الميداني (${w.fieldWeight})`, `المشرف الأكاديمي (${w.academicWeight}، وللمحاكاة ${w.academicWeight + w.fieldWeight})`, `التحضير والسجلات (${w.attendanceWeight})`, "المجموع (100)", "التقدير", "الحالة"];
+  const header = ["م", "الرقم الجامعي", "اسم الطالب/ة", "التخصص", "نوع التدريب", "جهة التدريب", `المشرف المؤسسي (${w.fieldWeight})`, `المشرف الأكاديمي (${w.academicWeight}، وللمحاكاة ${w.academicWeight + w.fieldWeight})`, `التحضير والسجلات (${w.attendanceWeight})`, "المجموع (100)", "التقدير", "الحالة"];
   const q = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const lines = rows.map((g, i) =>
     [

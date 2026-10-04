@@ -7,7 +7,6 @@ import { readFileSync } from "node:fs";
 
 const B = process.env.BASE_URL ?? "http://localhost:3000";
 const SIG = readFileSync("prisma/fixtures/sample-signature.txt", "utf8").trim();
-const STAMP = readFileSync("public/brand/emblem-512.png");
 const sessions = {};
 
 /** جلسة HTTP بسيطة بملفات تعريف الارتباط (دون متصفح) */
@@ -69,7 +68,7 @@ async function flow(kind, data, { until = "REVIEWED", score, domain, studentSig 
   await tr(email, id, { action: "SUBMIT", ...(studentSig ? { signatures: [sig("STUDENT")] } : {}) });
   if (until === "SUBMITTED") return id;
   if (field) {
-    await tr(F, id, { action: "FIELD_SIGN", signatures: [sig("FIELD_SUPERVISOR"), ...(kind === "COMMENCEMENT" ? [sig("ORG_DIRECTOR", { signerName: "د. سليمان الحربي", withStamp: true })] : [])] });
+    await tr(F, id, { action: "FIELD_SIGN", signatures: [sig("FIELD_SUPERVISOR"), ...(kind === "COMMENCEMENT" ? [sig("ORG_DIRECTOR", { signerName: "د. سليمان الحربي" })] : [])] });
     if (until === "SIGNED") return id;
   }
   await tr(A, id, { action: "ACADEMIC_APPROVE", ...(score ? { score } : {}) });
@@ -77,14 +76,10 @@ async function flow(kind, data, { until = "REVIEWED", score, domain, studentSig 
 }
 
 console.log("بيانات العرض التوضيحي");
-// ------------------------------------------------------------------ الختم الرسمي للمؤسسة
 const orgId = (await call(F, "GET", "/api/attendance-sheets")).organization.id;
-await call(F, "POST", `/api/organizations/${orgId}/stamp`, undefined, { file: { name: "stamp.png", mimeType: "image/png", buffer: STAMP } });
-log("رفع ختم المؤسسة الرسمي");
-
 // ------------------------------------------------------------------ 1) المباشرة
 await flow("COMMENCEMENT", { fixedTrainingDay: 0, shift: "MORNING", declarationAccepted: true }, { studentSig: true });
-log("مباشرة التدريب: توقيع الطالب والمشرف المؤسسي ومدير المؤسسة بالختم، واعتماد أكاديمي");
+log("مباشرة التدريب: توقيع الطالب والمشرف المؤسسي ومدير المؤسسة، واعتماد أكاديمي");
 
 // ------------------------------------------------------------------ 2) التقرير التعريفي
 await flow("ORGANIZATION_PROFILE", {

@@ -8,7 +8,7 @@ import { haversineMeters } from "@/lib/geo/geofence";
  *  2. تُجرَّب رغبات الطالب بالترتيب (جهة محددة أو تصنيف).
  *  3. يُراعى: الطاقة الاستيعابية لكل جنس، التخصصات المقبولة، نطاق الجنس في الجهة.
  *  4. إن لم تتحقق أي رغبة: أقرب جهة متاحة لسكن الطالب.
- *  5. يُسند مشرف أكاديمي بأقل عبء، ومشرف ميداني من الجهة بأقل عبء.
+ *  5. يُسند مشرف أكاديمي بأقل عبء، ومشرف مؤسسي من الجهة بأقل عبء.
  */
 export async function autoAssign(termId: string, dryRun = true) {
   const term = await prisma.academicTerm.findUniqueOrThrow({ where: { id: termId } });

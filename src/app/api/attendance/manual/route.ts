@@ -13,7 +13,7 @@ const schema = z.object({
   note: z.string().max(500).optional(),
 });
 
-/** POST /api/attendance/manual — تسجيل غياب / عذر / إجازة يدوياً من المشرف الميداني */
+/** POST /api/attendance/manual — تسجيل غياب / عذر / إجازة يدوياً من المشرف المؤسسي */
 export const POST = handler(async (req: Request) => {
   const user = await requireRole("FIELD_SUPERVISOR", "TRAINING_HEAD");
   const body = await parseBody(req, schema);

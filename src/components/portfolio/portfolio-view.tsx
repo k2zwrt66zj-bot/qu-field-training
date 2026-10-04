@@ -34,7 +34,7 @@ const KIND_ICONS: Partial<Record<FormKind, React.ComponentType<{ className?: str
 /** وصف مختصر لكل نموذج من أقسامه في الدليل الرسمي */
 function kindHint(kind: FormKind, simulation: boolean): string {
   switch (kind) {
-    case "COMMENCEMENT": return "اليوم الثابت والفترة والإقرار — يوقّعه المشرف المؤسسي ومدير المؤسسة مع الختم.";
+    case "COMMENCEMENT": return "اليوم الثابت والفترة والإقرار — يوقّعه المشرف المؤسسي ومدير المؤسسة.";
     case "ORGANIZATION_PROFILE": return "ثمانية أقسام: البيانات الأولية، والإشراف، والأهداف، والهيكل التنظيمي، والخدمات، والعلاقات بالمجتمع، وأدوار الأخصائي، وملاحظاتك.";
     case "TRAINING_PLAN": return `المهام الأسبوعية والمسؤول عن أدائها — تُعدّ بالتشارك مع ${simulation ? "المشرف الأكاديمي" : "المشرف المؤسسي"}.`;
     case "SKILLS_LOG": return "لكل يوم تدريبي: الموضوعات، والمهارات والمعارف المكتسبة سرداً مهنياً، والصعوبات، والشواهد.";

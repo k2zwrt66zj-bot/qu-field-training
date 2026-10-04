@@ -13,7 +13,7 @@ export interface TransitionPayload {
   action: FormAction;
   comment?: string;
   score?: number;
-  signatures?: { slot: SignatureSlot; imageData: string; signerName?: string; withStamp?: boolean }[];
+  signatures?: { slot: SignatureSlot; imageData: string; signerName?: string }[];
 }
 
 const INTRO: Partial<Record<FormAction, string>> = {
@@ -25,12 +25,11 @@ const INTRO: Partial<Record<FormAction, string>> = {
 };
 
 /** نافذة تنفيذ إجراء: تجمع التواقيع المطلوبة والملاحظة والدرجة حسب الإجراء */
-export function ActionDialog({ action, slots, withScore, directorDefault, hasStamp, onClose, onConfirm }: {
+export function ActionDialog({ action, slots, withScore, directorDefault, onClose, onConfirm }: {
   action: FormAction;
   slots: SignatureSlot[];
   withScore: boolean;
   directorDefault?: string | null;
-  hasStamp?: boolean;
   onClose: () => void;
   onConfirm: (p: TransitionPayload) => Promise<string | null>;
 }) {
@@ -38,7 +37,6 @@ export function ActionDialog({ action, slots, withScore, directorDefault, hasSta
   const [comment, setComment] = useState("");
   const [score, setScore] = useState("");
   const [director, setDirector] = useState(directorDefault ?? "");
-  const [stamp, setStamp] = useState(!!hasStamp);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -53,7 +51,7 @@ export function ActionDialog({ action, slots, withScore, directorDefault, hasSta
       comment: comment.trim() || undefined,
       score: withScore && score !== "" ? Number(score) : undefined,
       signatures: slots.length
-        ? slots.map((slot) => ({ slot, imageData: images[slot]!, ...(slot === "ORG_DIRECTOR" ? { signerName: director.trim(), withStamp: stamp } : {}) }))
+        ? slots.map((slot) => ({ slot, imageData: images[slot]!, ...(slot === "ORG_DIRECTOR" ? { signerName: director.trim() } : {}) }))
         : undefined,
     });
     setBusy(false);
@@ -73,10 +71,6 @@ export function ActionDialog({ action, slots, withScore, directorDefault, hasSta
                   <Label htmlFor="director-name">اسم مدير المؤسسة</Label>
                   <Input id="director-name" value={director} onChange={(e) => setDirector(e.target.value)} />
                 </div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={stamp} disabled={!hasStamp} onChange={(e) => setStamp(e.target.checked)} />
-                  {hasStamp ? "إضافة ختم المؤسسة الرسمي" : "لا يوجد ختم رسمي مرفوع للمؤسسة (يُختم الورقي يدوياً)"}
-                </label>
               </>
             )}
             <SignaturePad onChange={(img) => setImages((m) => ({ ...m, [slot]: img }))} height={130} />

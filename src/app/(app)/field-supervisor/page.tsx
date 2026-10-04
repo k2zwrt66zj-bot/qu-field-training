@@ -62,7 +62,7 @@ export default async function FieldSupervisorPage() {
         </CardContent>
       </Card>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_380px]">
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_380px] [&>*]:min-w-0">
         <Card>
           <CardHeader><CardTitle>المتدربون ({placements.length})</CardTitle></CardHeader>
           <CardContent className="p-0">

@@ -121,7 +121,7 @@ export default async function StudentHome() {
           <CardContent className="space-y-4">
             {[
               // المحاكاة: لا مشرف مؤسسي، ووزنه منقول كاملاً إلى المشرف الأكاديمي (قرار القسم)
-              ...(simulation ? [] : [{ label: "تقييم المشرف الميداني", ev: field, weight: placement.term.fieldWeight }]),
+              ...(simulation ? [] : [{ label: "تقييم المشرف المؤسسي", ev: field, weight: placement.term.fieldWeight }]),
               { label: "تقييم المشرف الأكاديمي", ev: academic, weight: placement.term.academicWeight + (simulation ? placement.term.fieldWeight : 0) },
             ].map(({ label, ev, weight }) => (
               <div key={label}>

@@ -1,6 +1,6 @@
 // =====================================================================
 //  محرك احتساب الدرجة النهائية للتدريب الميداني
-//  الافتراضي: 40% المشرف الميداني + 40% المشرف الأكاديمي + 20% التحضير والسجلات
+//  الافتراضي: 40% المشرف المؤسسي + 40% المشرف الأكاديمي + 20% التحضير والسجلات
 //  (الأوزان مخزنة في AcademicTerm ويمكن تعديلها لكل فصل)
 // =====================================================================
 
@@ -13,7 +13,7 @@ export type GradeWeights = {
 
 export interface GradeInput {
   weights: GradeWeights;
-  fieldPercentage: number | null; // نسبة تقييم المشرف الميداني 0-100
+  fieldPercentage: number | null; // نسبة تقييم المشرف المؤسسي 0-100
   academicPercentage: number | null; // نسبة تقييم المشرف الأكاديمي 0-100
   approvedMinutes: number; // دقائق الحضور المعتمدة
   requiredHours: number;
@@ -24,7 +24,7 @@ export interface GradeInput {
   hoursApplicable?: boolean;
   /**
    * false في التدريب بالمحاكاة (قرار القسم): لا مشرف مؤسسي، فيُنقل وزنه كاملاً إلى المشرف الأكاديمي
-   * (40% + 40% = 80% افتراضياً) ولا يُطلب تقييم ميداني
+   * (40% + 40% = 80% افتراضياً) ولا يُطلب تقييم المشرف المؤسسي
    */
   fieldApplicable?: boolean;
 }
@@ -94,7 +94,7 @@ export function calculateFinalGrade(input: GradeInput): GradeBreakdown {
     : { fieldWeight: 0, academicWeight: input.weights.academicWeight + input.weights.fieldWeight, attendanceWeight: input.weights.attendanceWeight };
   const missing: string[] = [];
 
-  if (fieldApplicable && input.fieldPercentage == null) missing.push("تقييم المشرف الميداني");
+  if (fieldApplicable && input.fieldPercentage == null) missing.push("تقييم المشرف المؤسسي");
   if (input.academicPercentage == null) missing.push("تقييم المشرف الأكاديمي");
 
   const fieldComponent = fieldApplicable ? round2(((input.fieldPercentage ?? 0) / 100) * weights.fieldWeight) : 0;

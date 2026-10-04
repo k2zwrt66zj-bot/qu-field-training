@@ -41,7 +41,7 @@ const formOf = (uid, kind, extra = "") => sql(`select f.id from "FieldForm" f jo
 const plOf = (uid) => sql(`select p.id from "Placement" p join "StudentProfile" s on s.id=p."studentId" where s."universityId"='${uid}'`);
 
 // =====================================================================
-section("أ) النموذج الرسمي: المباشرة الموقّعة ثلاثياً مع الختم");
+section("أ) النموذج الرسمي: المباشرة الموقّعة ثلاثياً (بلا ختم لجهة التدريب)");
 const cm = formOf("441100006", "COMMENCEMENT");
 check(!!cm, "نموذج مباشرة موقّع في البيانات");
 let r = await fetchAs(TH, `/api/forms/${cm}/pdf`);
@@ -50,9 +50,9 @@ let h = await html(TH, `/api/forms/${cm}/pdf`);
 check(hasHeader(h), "الترويسة الرسمية بالعربية والإنجليزية");
 check(h.includes('alt="شعار جامعة القصيم"'), "شعار الجامعة");
 check(h.includes("@font-face") && h.includes("font/woff2;base64"), "الخطوط مضمّنة (لا اعتماد على الإنترنت)");
-for (const role of ["توقيع الطالب/ـة", "توقيع المشرف المؤسسي", "مدير المؤسسة (الختم والتوقيع)", "اعتماد المشرف الأكاديمي"]) check(h.includes(role), `خانة: ${role}`);
+for (const role of ["توقيع الطالب/ـة", "توقيع المشرف المؤسسي", "مدير المؤسسة (التوقيع)", "اعتماد المشرف الأكاديمي"]) check(h.includes(role), `خانة: ${role}`);
 check((h.match(/alt="توقيع"/g) ?? []).length === 3, "صور التواقيع الثلاثة مضمّنة");
-check(h.includes('alt="ختم المؤسسة"'), "ختم المؤسسة الرسمي في خانة المدير");
+check(!h.includes('alt="ختم المؤسسة"') && !h.includes('class="stamp'), "لا ختم في خانة مدير المؤسسة");
 check(/بصمة المحتوى \(SHA-256\)/.test(h) && h.includes('alt="رمز التحقق"'), "بصمة المحتوى ورمز التحقق في التذييل");
 
 section("ب) أماكن التوقيع الفارغة للتوقيع اليدوي");

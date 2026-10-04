@@ -129,7 +129,7 @@ export function PlacementsManager({ termId, rows, unplacedCount, sections }: { t
             <THead>
               <TR>
                 <TH className="w-8"><input type="checkbox" aria-label="تحديد الكل" checked={allSelected} onChange={() => setSelected(allSelected ? new Set() : new Set(rows.map((r) => r.id)))} /></TH>
-                <TH>الطالب/ة</TH><TH>التخصص</TH><TH>الشعبة</TH><TH>جهة التدريب</TH><TH>المشرف الميداني</TH><TH>المشرف الأكاديمي</TH><TH>الحالة</TH><TH>الخطابات</TH>
+                <TH>الطالب/ة</TH><TH>التخصص</TH><TH>الشعبة</TH><TH>جهة التدريب</TH><TH>المشرف المؤسسي</TH><TH>المشرف الأكاديمي</TH><TH>الحالة</TH><TH>الخطابات</TH>
               </TR>
             </THead>
             <TBody>

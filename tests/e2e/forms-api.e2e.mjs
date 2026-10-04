@@ -74,16 +74,14 @@ check(r.status === 403, "لا تعديل بعد الرفع");
 
 r = await tr(fsEmail, cmId, { action: "FIELD_SIGN", signatures: [sig("FIELD_SUPERVISOR")] });
 check(r.status === 422 && r.json.error.includes("مدير المؤسسة"), "توقيع المشرف وحده لا يكفي", r.json);
+// الختم للقسم ووحدة التدريب فقط: طلب «الختم» لمدير المؤسسة يُتجاهل (للتوافق مع النسخ السابقة)
 r = await tr(fsEmail, cmId, { action: "FIELD_SIGN", signatures: [sig("FIELD_SUPERVISOR"), sig("ORG_DIRECTOR", { signerName: "أ. سعد المدير", withStamp: true })] });
-check(r.status === 422 && r.json.error.includes("ختم"), "الختم مطلوب مرفوعاً قبل استخدامه", r.json);
-const orgId = sql(`select "organizationId" from "Placement" where id='${plId}'`);
-r = await api(fsEmail, "POST", `/api/organizations/${orgId}/stamp`, undefined, { file: { name: "stamp.png", mimeType: "image/png", buffer: readFileSync(`${ROOT}/public/brand/emblem-192.png`) } });
-check(r.status === 201, "المشرف المؤسسي رفع ختم مؤسسته");
-r = await api("field5@example.sa", "POST", `/api/organizations/${orgId}/stamp`, undefined, { file: { name: "x.png", mimeType: "image/png", buffer: readFileSync(`${ROOT}/public/brand/emblem-64.png`) } });
-check(r.status === 403, "لا يرفع مشرف ختم مؤسسة أخرى");
-r = await tr(fsEmail, cmId, { action: "FIELD_SIGN", signatures: [sig("FIELD_SUPERVISOR"), sig("ORG_DIRECTOR", { signerName: "أ. سعد المدير", withStamp: true })] });
-check(r.status === 200 && r.json.form.status === "SIGNED", "توقيع المشرف + المدير بالختم");
+check(r.status === 200 && r.json.form.status === "SIGNED", "توقيع المشرف + المدير");
+check(!r.json.form.signatures.some((s) => s.withStamp), "لا ختم لمدير المؤسسة", r.json.form.signatures.map((s) => s.withStamp));
 check(r.json.form.signatures.map((s) => s.slot).join(",") === "STUDENT,FIELD_SUPERVISOR,ORG_DIRECTOR", "ثلاث خانات توقيع محفوظة", r.json.form.signatures.map((s) => s.slot));
+const orgId = sql(`select "organizationId" from "Placement" where id='${plId}'`);
+const stampRes = await api(fsEmail, "POST", `/api/organizations/${orgId}/stamp`, undefined, { file: { name: "stamp.png", mimeType: "image/png", buffer: readFileSync(`${ROOT}/public/brand/emblem-192.png`) } });
+check(stampRes.status === 404 || stampRes.status === 405, "لا رفع لختم المؤسسة", stampRes.status);
 const [pst, pwd, pshift, pcommenced] = sql(`select status, "workDays", shift, "commencedAt" from "Placement" where id='${plId}'`).split("|");
 check(pst === "ACTIVE" && pwd === "{2}" && pshift === "EVENING" && !!pcommenced, `أثر المباشرة على الإسناد: ${pst} ${pwd} ${pshift} ${pcommenced}`);
 check(sql(`select "directorName" from "CommencementForm" where "formId"='${cmId}'`) === "أ. سعد المدير", "لقطة اسم المدير وقت التوقيع");

@@ -35,11 +35,6 @@ async function fileDataUri(a: Pick<Attachment, "storageKey" | "mimeType">): Prom
   }
 }
 
-async function orgStamp(organizationId: string): Promise<string | null> {
-  const a = await prisma.attachment.findFirst({ where: { organizationId, kind: "STAMP" }, orderBy: { createdAt: "desc" } });
-  return a ? fileDataUri(a) : null;
-}
-
 const metaTable = (rows: [string, unknown][], cols = 2) => {
   const out: string[] = [];
   for (let i = 0; i < rows.length; i += cols) {
@@ -76,7 +71,6 @@ export async function formDocPart(user: SessionUser, form: LoadedForm, baseUrl: 
 
   // خانات التوقيع حسب سياسة النموذج + اعتماد المشرف الأكاديمي
   const expected = [...f.policy.slotsOnSubmit, ...f.policy.slotsOnFieldSign];
-  const stamp = expected.includes("ORG_DIRECTOR") ? await orgStamp(p.organizationId) : null;
   const boxes: SigBox[] = expected.map((slot) => {
     const s = f.signatures.find((x) => x.slot === slot);
     return {
@@ -84,7 +78,6 @@ export async function formDocPart(user: SessionUser, form: LoadedForm, baseUrl: 
       name: s?.signerName,
       imageData: s?.imageData,
       signedAt: s?.signedAt,
-      ...(slot === "ORG_DIRECTOR" ? { stamp: { image: s?.withStamp ? stamp : null } } : {}),
     };
   });
   boxes.push({

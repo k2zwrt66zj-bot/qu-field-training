@@ -45,7 +45,7 @@ export function GradesManager({ termId, rows, weights }: { termId: string; rows:
         <div>
           <CardTitle>رصد واعتماد الدرجات النهائية</CardTitle>
           <CardDescription>
-            المشرف الميداني {weights.f}% + المشرف الأكاديمي {weights.a}% + التحضير والسجلات {weights.t}%
+            المشرف المؤسسي {weights.f}% + المشرف الأكاديمي {weights.a}% + التحضير والسجلات {weights.t}%
             {rows.some((r) => r.simulation) && <> · المحاكاة: المشرف الأكاديمي {weights.f + weights.a}% + السجلات {weights.t}%</>}
           </CardDescription>
         </div>
@@ -68,7 +68,7 @@ export function GradesManager({ termId, rows, weights }: { termId: string; rows:
                 <input type="checkbox" aria-label="تحديد كل القابل للاعتماد" checked={approvable.length > 0 && selected.size === approvable.length}
                   onChange={(e) => setSelected(e.target.checked ? new Set(approvable.map((r) => r.placementId)) : new Set())} />
               </TH>
-              <TH>الطالب/ة</TH><TH>الجهة</TH><TH>الميداني ({weights.f})</TH><TH>الأكاديمي ({weights.a})</TH><TH>التحضير ({weights.t})</TH><TH>المجموع</TH><TH>التقدير</TH><TH>الحالة</TH>
+              <TH>الطالب/ة</TH><TH>الجهة</TH><TH>المؤسسي ({weights.f})</TH><TH>الأكاديمي ({weights.a})</TH><TH>التحضير ({weights.t})</TH><TH>المجموع</TH><TH>التقدير</TH><TH>الحالة</TH>
             </TR>
           </THead>
           <TBody>

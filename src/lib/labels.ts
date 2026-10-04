@@ -2,7 +2,7 @@ import type { AttendanceStatus, Major, OrgCategory, PlacementStatus, Role, Repor
 
 export const ROLE_LABELS: Record<Role, string> = {
   STUDENT: "طالب / طالبة",
-  FIELD_SUPERVISOR: "مشرف ميداني",
+  FIELD_SUPERVISOR: "مشرف مؤسسي",
   ACADEMIC_SUPERVISOR: "مشرف أكاديمي",
   TRAINING_HEAD: "رئيسة وحدة التدريب الميداني",
   DEPARTMENT_HEAD: "رئيس القسم",
@@ -80,7 +80,7 @@ export const INSTITUTION = {
   college: "كلية اللغات والعلوم الإنسانية",
   department: "قسم الاجتماع والخدمة الاجتماعية",
   unit: "وحدة التدريب الميداني",
-  departmentHead: "د. عمر النملة",
+  departmentHead: "د. عمر محمد النملة",
   trainingHead: "د. بشرى محمد الدبيخي",
   // الترويسة الإنجليزية كما في النماذج الرسمية
   en: {

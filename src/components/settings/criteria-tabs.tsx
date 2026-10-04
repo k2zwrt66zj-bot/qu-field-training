@@ -8,7 +8,7 @@ export function CriteriaTabs({ termId }: { termId: string }) {
   return (
     <div className="space-y-4">
       <div role="tablist" className="inline-flex rounded-lg bg-muted p-1">
-        {([["FIELD", "استمارة المشرف الميداني"], ["ACADEMIC", "استمارة المشرف الأكاديمي"]] as const).map(([k, l]) => (
+        {([["FIELD", "استمارة المشرف المؤسسي"], ["ACADEMIC", "استمارة المشرف الأكاديمي"]] as const).map(([k, l]) => (
           <button key={k} role="tab" aria-selected={type === k} onClick={() => setType(k)}
             className={cn("rounded-md px-4 py-1.5 text-sm transition-colors", type === k ? "bg-card font-semibold shadow-sm" : "text-muted-foreground")}>
             {l}

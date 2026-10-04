@@ -17,7 +17,7 @@ export interface TermSettings {
 }
 
 const FIELDS: { key: keyof TermSettings; label: string; hint?: string; group: "w" | "a" }[] = [
-  { key: "fieldWeight", label: "وزن المشرف الميداني %", group: "w" },
+  { key: "fieldWeight", label: "وزن المشرف المؤسسي %", group: "w" },
   { key: "academicWeight", label: "وزن المشرف الأكاديمي %", group: "w" },
   { key: "attendanceWeight", label: "وزن التحضير والسجلات %", group: "w" },
   { key: "requiredHours", label: "الساعات المطلوبة", hint: "تسري على الإسنادات الجارية", group: "a" },

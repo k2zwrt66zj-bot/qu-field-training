@@ -1,4 +1,3 @@
-import { Stamp } from "lucide-react";
 import type { SignatureSlot } from "@prisma/client";
 import { SLOT_LABELS } from "@/lib/forms/catalog";
 
@@ -21,7 +20,6 @@ export function SignaturesView({ signatures, expected }: { signatures: Signature
                 <img src={s.imageData} alt={`توقيع ${s.signerName}`} className="mx-auto my-2 h-16 max-w-full object-contain" />
                 <div className="text-sm font-medium">{s.signerName}</div>
                 <div className="text-xs text-muted-foreground">{new Date(s.signedAt).toLocaleDateString("ar-SA-u-ca-gregory-nu-latn", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Riyadh" })}</div>
-                {s.withStamp && <div className="mx-auto mt-1 flex items-center gap-1 rounded-full bg-qu-teal-50 px-2 py-0.5 text-xs text-qu-teal-700"><Stamp className="size-3" /> مختوم بختم المؤسسة</div>}
               </>
             ) : (
               <div className="my-2 flex flex-1 items-center justify-center rounded-lg border border-dashed py-6 text-xs text-muted-foreground">لم يوقَّع بعد</div>

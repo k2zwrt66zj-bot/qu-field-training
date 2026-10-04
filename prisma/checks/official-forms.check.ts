@@ -59,8 +59,8 @@ async function main() {
       };
       await sign("STUDENT", studentUserId, "الطالب");
       await sign("FIELD_SUPERVISOR", fieldUserId, "المشرف المؤسسي");
-      await sign("ORG_DIRECTOR", fieldUserId, "أ. مدير المؤسسة", true); // يوقّع المدير على جهاز المشرف
-      ok("ثلاث خانات توقيع: الطالب، المشرف المؤسسي، المدير (بالختم)");
+      await sign("ORG_DIRECTOR", fieldUserId, "أ. مدير المؤسسة"); // يوقّع المدير على جهاز المشرف
+      ok("ثلاث خانات توقيع: الطالب، المشرف المؤسسي، المدير");
       await expectUniqueViolation(tx, "خانة توقيع واحدة لكل دور في النموذج", () => sign("STUDENT", studentUserId, "مكرر"));
 
       console.log("2) دراسة الحالة: التكوين الأسري + المقابلات المرتبطة");

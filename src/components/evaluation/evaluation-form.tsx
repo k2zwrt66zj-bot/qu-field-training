@@ -35,7 +35,7 @@ const LEVELS = [
 ];
 
 /**
- * نموذج التقييم الميداني/الأكاديمي — يُحمّل البنود المعتمدة من الخادم حسب الفصل والتخصص،
+ * نموذج تقييم المشرف المؤسسي/الأكاديمي — يُحمّل البنود المعتمدة من الخادم حسب الفصل والتخصص،
  * ويتيح اختيار مستوى سريع أو إدخال درجة دقيقة، مع حساب لحظي وتوقيع إلكتروني عند الاعتماد.
  */
 export function EvaluationForm({ placementId, backHref }: { placementId: string; backHref: string }) {
@@ -198,7 +198,7 @@ export function EvaluationForm({ placementId, backHref }: { placementId: string;
           <CardContent className="space-y-3">
             <div className="text-center">
               <div className="text-4xl font-bold text-primary">{Math.round(pct * 10) / 10}%</div>
-              <div className="text-sm text-muted-foreground">{total} من {max} · {data.type === "FIELD" ? "تقييم المشرف الميداني" : "تقييم المشرف الأكاديمي"}</div>
+              <div className="text-sm text-muted-foreground">{total} من {max} · {data.type === "FIELD" ? "تقييم المشرف المؤسسي" : "تقييم المشرف الأكاديمي"}</div>
             </div>
             <Progress value={pct} />
             <div className="text-xs text-muted-foreground">البنود المقيَّمة: {filled} / {data.criteria.length}</div>

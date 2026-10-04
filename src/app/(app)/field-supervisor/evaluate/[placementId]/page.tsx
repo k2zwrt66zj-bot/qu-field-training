@@ -2,7 +2,7 @@ import { requirePageRole } from "@/lib/auth/session";
 import { PageHeader } from "@/components/layout/page-header";
 import { EvaluationForm } from "@/components/evaluation/evaluation-form";
 
-export const metadata = { title: "التقييم الميداني" };
+export const metadata = { title: "تقييم المشرف المؤسسي" };
 
 export default async function FieldEvaluationPage({ params }: { params: Promise<{ placementId: string }> }) {
   await requirePageRole("FIELD_SUPERVISOR");

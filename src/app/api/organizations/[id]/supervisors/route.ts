@@ -14,7 +14,7 @@ const schema = z.object({
 });
 
 /**
- * POST /api/organizations/:id/supervisors — إنشاء حساب مشرف ميداني للجهة
+ * POST /api/organizations/:id/supervisors — إنشاء حساب مشرف مؤسسي للجهة
  * تُولَّد كلمة مرور مؤقتة تُعرض مرة واحدة لرئيس الوحدة ليسلمها للمشرف.
  */
 export const POST = handler(async (req: Request, { params }: { params: Promise<{ id: string }> }) => {

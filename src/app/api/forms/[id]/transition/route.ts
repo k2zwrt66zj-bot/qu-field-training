@@ -15,7 +15,7 @@ const schema = z.object({
         imageData: z.string().max(300_000),
         signerName: z.string().trim().min(3).max(120).optional(),
         signerTitle: z.string().trim().max(120).optional(),
-        withStamp: z.boolean().optional(),
+        withStamp: z.boolean().optional(), // مقبول للتوافق ويُتجاهل: لا ختم لمدير المؤسسة
       })
     )
     .max(3)

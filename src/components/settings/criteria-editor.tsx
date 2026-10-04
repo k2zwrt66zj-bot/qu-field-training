@@ -12,7 +12,7 @@ interface Row { key: string; id?: string; section: string; label: string; maxSco
 let tmp = 0;
 const newKey = () => `new-${++tmp}`;
 
-/** محرر بنود استمارة التقييم (الميداني أو الأكاديمي) مع مجاميع لحظية لكل تخصص */
+/** محرر بنود استمارة التقييم (المؤسسي أو الأكاديمي) مع مجاميع لحظية لكل تخصص */
 export function CriteriaEditor({ termId, type }: { termId: string; type: "FIELD" | "ACADEMIC" }) {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [original, setOriginal] = useState<Row[]>([]);

@@ -74,7 +74,7 @@ export async function renderLetterHtml(letterId: string, baseUrl: string, opts: 
       <p>تهديكم ${INSTITUTION.unit} بـ${INSTITUTION.department} في ${INSTITUTION.college} أطيب تحية، وتشكر لكم تعاونكم المثمر في إعداد الكفاءات الوطنية المتخصصة،
       ونفيدكم بأنه قد تم توجيه ${studentWord} الموضحة بياناته${isFemale ? "ا" : ""} أدناه لقضاء فترة التدريب الميداني لدى جهتكم الموقرة، وذلك خلال الفترة
       من <b>${formatDateAr(p.startDate)}</b> إلى <b>${formatDateAr(p.endDate)}</b>، بواقع <b>${p.requiredHours}</b> ساعة تدريبية.</p>
-      <p>نأمل التكرم بتسهيل مهمة ${studentWord}، وتكليف مشرف ميداني لمتابعته${isFemale ? "ا" : ""} واعتماد الحضور اليومي والتقييم عبر منصة التدريب الميداني الإلكترونية.</p>`,
+      <p>نأمل التكرم بتسهيل مهمة ${studentWord}، وتكليف مشرف مؤسسي لمتابعته${isFemale ? "ا" : ""} واعتماد الحضور اليومي والتقييم عبر منصة التدريب الميداني الإلكترونية.</p>`,
     COMMENCEMENT: `
       <p>السلام عليكم ورحمة الله وبركاته، وبعد:</p>
       <p>نفيدكم بمباشرة ${studentWord} الموضحة بياناته${isFemale ? "ا" : ""} أدناه التدريب الميداني لدى جهتكم الموقرة اعتباراً من <b>${formatDateAr(p.startDate)}</b>،
@@ -107,7 +107,10 @@ export async function renderLetterHtml(letterId: string, baseUrl: string, opts: 
   table { width: 100%; border-collapse: collapse; margin: 12px 0; font-family: "IBM Plex Sans Arabic", sans-serif; font-size: 11pt; }
   td, th { border: 1px solid #c9ccd1; padding: 6px 10px; }
   th { background: ${BRAND.cellGray}; color: ${BRAND.navy}; width: 28%; text-align: right; }
-  .signs { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 30px; text-align: center; }
+  .signs { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 18px; margin-top: 30px; text-align: center; break-inside: avoid; }
+  /* مكان ختم القسم: بين توقيعي رئيسة وحدة التدريب ورئيس القسم فقط (لا ختم لجهة التدريب على الخطاب) */
+  .signs .stamp { width: 104px; height: 104px; margin-top: 6px; border-radius: 50%; border: 1.5px dashed #9aa0a8; color: #7b8088;
+    display: flex; align-items: center; justify-content: center; text-align: center; font-family: "IBM Plex Sans Arabic", sans-serif; font-size: 9pt; line-height: 1.5; }
   .signs .role { color: ${BRAND.navy}; font-weight: 700; }
   .signs .line { margin-top: 42px; border-top: 1px dotted #7b8088; width: 70%; margin-inline: auto; }
   footer { margin-top: 28px; display: flex; justify-content: space-between; align-items: end;
@@ -144,6 +147,7 @@ ${opts.printButton ? `<div class="toolbar"><button onclick="window.print()">طب
 
   <div class="signs">
     <div><div class="role">رئيسة وحدة التدريب الميداني</div><div>${INSTITUTION.trainingHead}</div><div class="line"></div></div>
+    <div class="stamp" aria-label="مكان ختم القسم">ختم القسم<br/>ووحدة التدريب</div>
     <div><div class="role">رئيس القسم</div><div>${INSTITUTION.departmentHead}</div><div class="line"></div></div>
   </div>
 

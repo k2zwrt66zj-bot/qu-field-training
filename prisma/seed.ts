@@ -53,7 +53,7 @@ async function main() {
   const mkUser = (email: string, fullName: string, role: "DEPARTMENT_HEAD" | "TRAINING_HEAD" | "ADMIN" | "ACADEMIC_SUPERVISOR" | "FIELD_SUPERVISOR" | "STUDENT", gender: Gender = "MALE", phone?: string) =>
     prisma.user.create({ data: { email, fullName, role, gender, passwordHash, phone } });
 
-  await mkUser("omar.alnamlah@qu.edu.sa", "د. عمر النملة", "DEPARTMENT_HEAD");
+  await mkUser("omar.alnamlah@qu.edu.sa", "د. عمر محمد النملة", "DEPARTMENT_HEAD");
   await mkUser("bushra.aldubaikhi@qu.edu.sa", "د. بشرى محمد الدبيخي", "TRAINING_HEAD");
   await mkUser("admin@qu.edu.sa", "مدير النظام", "ADMIN");
 
@@ -445,7 +445,7 @@ async function main() {
   console.log("   رئيس القسم:            omar.alnamlah@qu.edu.sa");
   console.log("   رئيسة وحدة التدريب:    bushra.aldubaikhi@qu.edu.sa");
   console.log("   مشرف أكاديمي:          academic1@qu.edu.sa");
-  console.log("   مشرف ميداني:           field1@example.sa");
+  console.log("   مشرف مؤسسي:           field1@example.sa");
   console.log("   طالب:                  441100001@qu.edu.sa");
   console.log("   طالب (محاكاة):         441100025@qu.edu.sa · 441100026@qu.edu.sa");
 }

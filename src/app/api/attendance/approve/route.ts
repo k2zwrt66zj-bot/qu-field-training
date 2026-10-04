@@ -14,7 +14,7 @@ const schema = z.object({
 });
 
 /**
- * POST /api/attendance/approve — اعتماد/رفض حضور يومي (المشرف الميداني)
+ * POST /api/attendance/approve — اعتماد/رفض حضور يومي (المشرف المؤسسي)
  * رئيس التدريب يمكنه أيضاً الاعتماد في الحالات الاستثنائية
  */
 export const POST = handler(async (req: Request) => {

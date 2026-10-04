@@ -20,7 +20,7 @@ datasource db {
 
 enum Role {
   STUDENT // طالب / طالبة
-  FIELD_SUPERVISOR // مشرف ميداني في جهة التدريب
+  FIELD_SUPERVISOR // مشرف مؤسسي في جهة التدريب
   ACADEMIC_SUPERVISOR // مشرف أكاديمي (عضو هيئة تدريس)
   TRAINING_HEAD // رئيس وحدة التدريب الميداني
   DEPARTMENT_HEAD // رئيس القسم
@@ -107,7 +107,7 @@ enum LogbookType {
 enum DocumentStatus {
   DRAFT // مسودة
   SUBMITTED // مرفوع للمشرف
-  SIGNED // موقّع من المشرف الميداني
+  SIGNED // موقّع من المشرف المؤسسي
   RETURNED // معاد للتعديل
   REVIEWED // تمت مراجعته أكاديمياً
 }
@@ -134,7 +134,7 @@ enum VisitType {
 }
 
 enum EvaluationType {
-  FIELD // تقييم المشرف الميداني
+  FIELD // تقييم المشرف المؤسسي
   ACADEMIC // تقييم المشرف الأكاديمي
 }
 
@@ -272,7 +272,7 @@ model AcademicTerm {
   isActive      Boolean  @default(false)
 
   // أوزان الدرجة النهائية (مجموعها 100)
-  fieldWeight      Int @default(40) // المشرف الميداني
+  fieldWeight      Int @default(40) // المشرف المؤسسي
   academicWeight   Int @default(40) // المشرف الأكاديمي
   attendanceWeight Int @default(20) // التحضير والسجلات
 
@@ -445,7 +445,7 @@ model AttendanceRecord {
 
   workedMinutes Int @default(0)
 
-  // اعتماد المشرف الميداني
+  // اعتماد المشرف المؤسسي
   approvalStatus ApprovalStatus @default(PENDING)
   approvedById   String?
   approvedAt     DateTime?
@@ -541,7 +541,7 @@ model FieldReport {
   content         Json // حقول النموذج حسب القالب (انظر src/lib/report-templates.ts)
   status          DocumentStatus @default(DRAFT)
   submittedAt     DateTime?
-  fieldComment    String? // ملاحظة المشرف الميداني (عند التوقيع أو الإعادة)
+  fieldComment    String? // ملاحظة المشرف المؤسسي (عند التوقيع أو الإعادة)
   academicComment String? // ملاحظة المشرف الأكاديمي
   score           Decimal?       @db.Decimal(5, 2) // درجة استرشادية من 100 يضعها المشرف الأكاديمي
   reviewedAt      DateTime?

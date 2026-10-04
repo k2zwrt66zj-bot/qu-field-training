@@ -251,12 +251,6 @@ export async function transitionForm(
   const extra = sigs.filter((s) => !t.requiredSlots.includes(s.slot));
   if (extra.length) throw new ApiError(422, "خانة توقيع غير متوقعة في هذه المرحلة");
 
-  const stampWanted = sigs.some((s) => s.withStamp);
-  if (stampWanted) {
-    const stamp = await prisma.attachment.count({ where: { organizationId: form.placement.organizationId, kind: "STAMP" } });
-    if (!stamp) throw new ApiError(422, "لا يوجد ختم رسمي مرفوع لهذه المؤسسة");
-  }
-
   const now = new Date();
   const hash = formContentHash(form);
   const org = form.placement.organization;
@@ -275,7 +269,8 @@ export async function transitionForm(
           formId: form.id, slot, signatureId: signature.id, signerName, signerTitle: s.signerTitle,
           // المدير يوقّع على جهاز المشرف: لا نربطه بحساب المشرف
           signerUserId: slot === "ORG_DIRECTOR" ? null : user.id,
-          withStamp: slot === "ORG_DIRECTOR" && !!s.withStamp,
+          // الختم الرسمي للقسم ووحدة التدريب فقط (على الخطابات)، لا لمدير المؤسسة أو مشرفها
+          withStamp: false,
         },
       });
     }
