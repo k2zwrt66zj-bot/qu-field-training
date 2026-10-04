@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { Role } from "@prisma/client";
+import { Prisma, type Role } from "@prisma/client";
 import { ZodError, type ZodType } from "zod";
 import { getSessionUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
@@ -45,6 +45,11 @@ export function handler<C = unknown>(fn: (req: Request, ctx: C) => Promise<Respo
         );
       }
       if (e instanceof Error && e.name === "StorageNotConfiguredError") return NextResponse.json({ error: e.message }, { status: 503 });
+      // قيمة فارغة لحقل مطلوب في قاعدة البيانات: خطأ إدخال (422) لا خطأ خادم
+      if (e instanceof Prisma.PrismaClientValidationError || (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2011")) {
+        console.warn("[422] Prisma validation:", e.message.split("\n").slice(-2).join(" "));
+        return NextResponse.json({ error: "لا يمكن ترك حقل مطلوب فارغاً" }, { status: 422 });
+      }
       console.error(e);
       return NextResponse.json({ error: "خطأ غير متوقع في الخادم" }, { status: 500 });
     }

@@ -161,7 +161,8 @@ export function ChoiceField({ id, value, onChange, options, layout = "inline", i
             type="button"
             role="radio"
             aria-checked={on}
-            onClick={() => onChange(on ? null : o.value)}
+            // سلوك الاختيار القياسي: الضغط على الخيار المحدد لا يلغيه (إلغاؤه كان يُفرغ حقلاً مطلوباً ويفشل الحفظ)
+            onClick={() => !on && onChange(o.value)}
             className={cn(
               "flex items-start gap-2 rounded-lg border px-3 py-2 text-start text-sm transition-colors",
               on ? "border-qu-navy-700 bg-qu-navy-50 font-medium text-qu-navy-800" : "bg-card hover:bg-accent",
@@ -240,7 +241,7 @@ export function WeekdayField({ id, value, onChange, invalid }: { id: string; val
   return (
     <div id={id} role="radiogroup" aria-label="يوم التدريب الثابت" className={cn("grid grid-cols-5 gap-1 rounded-lg border bg-card p-1", invalid && "border-red-400")}>
       {WEEKDAY_LABELS.slice(0, 5).map((d, i) => (
-        <button key={d} type="button" role="radio" aria-checked={value === i} onClick={() => onChange(value === i ? null : i)}
+        <button key={d} type="button" role="radio" aria-checked={value === i} onClick={() => value !== i && onChange(i)}
           className={cn("rounded-md py-2 text-sm transition-colors", value === i ? "bg-qu-navy-700 font-semibold text-white" : "hover:bg-accent")}>
           {d}
         </button>

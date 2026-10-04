@@ -42,15 +42,18 @@ try {
   process.on("SIGTERM", stop);
   await waitForServer();
   if (!args.has("--keep")) await run(`node --env-file=.env scripts/demo-data.mjs`);
+  await run("npm run -s demo:accounts");
 
   console.log(`
 ═══════════════════════════════════════════════════════════════
   المنصة جاهزة للعرض:  ${BASE}
   كلمة المرور لكل الحسابات: Qu@12345
+  • طالب أول دخول (عبدالملك العتيبي):    441100100@qu.edu.sa
   • طالب ميداني (السجل المهني الكامل):   441100001@qu.edu.sa
   • طالب محاكاة:                         441100025@qu.edu.sa
   • مشرف مؤسسي (كشوف الحضور والتوقيع):   field1@example.sa
   • مشرف أكاديمي (الاعتماد والاجتماعات): academic1@qu.edu.sa
+  • مشرفان أكاديميان: nahes.alomari@qu.edu.sa (ناهس عائض العمري) · alameen.albasheer@qu.edu.sa (الأمين محمد البشير)
   • رئيسة وحدة التدريب:                  bushra.aldubaikhi@qu.edu.sa
   • رئيس القسم:                          omar.alnamlah@qu.edu.sa
   للإيقاف: Ctrl+C
