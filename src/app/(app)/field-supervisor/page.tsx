@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/layout/page-header";
 import { AttendanceApprovals, type PendingRecord } from "@/components/supervisor/attendance-approvals";
 import { GuidanceForm } from "@/components/supervisor/guidance-form";
+import { ArrivalSmsSettings } from "@/components/supervisor/arrival-sms-settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -12,13 +13,16 @@ import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { RISK_FLAG_LABELS } from "@/lib/geo/anti-spoof";
 import { MAJOR_LABELS } from "@/lib/labels";
 import { formatShortDateAr, formatTimeAr } from "@/lib/time";
+import { displaySaudiMobile, normalizeSaudiMobile } from "@/lib/sms-format";
+import { smsConfigured } from "@/server/sms";
 
 export const metadata = { title: "المتدربون والحضور" };
 export const dynamic = "force-dynamic";
 
 export default async function FieldSupervisorPage() {
   const user = await requirePageRole("FIELD_SUPERVISOR");
-  const profile = await prisma.fieldSupervisorProfile.findUnique({ where: { userId: user.id }, include: { organization: true } });
+  const profile = await prisma.fieldSupervisorProfile.findUnique({ where: { userId: user.id }, include: { organization: true, user: { select: { phone: true } } } });
+  const phoneIntl = normalizeSaudiMobile(profile?.user.phone);
 
   const placements = await prisma.placement.findMany({
     where: { fieldSupervisor: { userId: user.id }, status: { in: ["ASSIGNED", "ACTIVE", "COMPLETED"] } },
@@ -93,12 +97,24 @@ export default async function FieldSupervisorPage() {
             </Table>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader><CardTitle>توجيه وإسناد مهام</CardTitle></CardHeader>
-          <CardContent>
-            <GuidanceForm students={placements.map((p) => ({ placementId: p.id, name: p.student.user.fullName }))} />
-          </CardContent>
-        </Card>
+        <div className="space-y-4">
+          <Card>
+            <CardHeader><CardTitle>توجيه وإسناد مهام</CardTitle></CardHeader>
+            <CardContent>
+              <GuidanceForm students={placements.map((p) => ({ placementId: p.id, name: p.student.user.fullName }))} />
+            </CardContent>
+          </Card>
+          {profile && (
+            <Card>
+              <CardHeader><CardTitle>الإشعارات</CardTitle></CardHeader>
+              <CardContent>
+                <ArrivalSmsSettings
+                  initial={{ smsOnArrival: profile.smsOnArrival, phone: phoneIntl ? displaySaudiMobile(phoneIntl) : profile.user.phone ?? "", smsConfigured: smsConfigured() }}
+                />
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </>
   );

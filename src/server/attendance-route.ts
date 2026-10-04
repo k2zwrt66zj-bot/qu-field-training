@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { z } from "zod";
 import type { AttemptType } from "@prisma/client";
 import { audit, clientIp, handler, parseBody, requireRole } from "@/lib/api";
 import { recordAttendance } from "@/server/attendance";
+import { notifyArrival } from "@/server/arrival-sms";
 
 const sampleSchema = z.object({
   latitude: z.number().min(-90).max(90),
@@ -37,6 +38,8 @@ export function attendanceRoute(type: AttemptType) {
     });
     await audit(user.id, type === "CHECK_IN" ? "attendance.check_in" : "attendance.check_out", "AttendanceRecord",
       result.ok ? result.recordId : undefined, { ok: result.ok, flags: result.riskFlags }, ip);
+    // رسالة وصول للمشرف المؤسسي (إن فعّلها) بعد إرسال الرد، فلا ينتظرها الطالب
+    if (result.ok && type === "CHECK_IN") after(() => notifyArrival(result.recordId));
     return NextResponse.json(result, { status: result.ok ? 200 : 422 });
   });
 }

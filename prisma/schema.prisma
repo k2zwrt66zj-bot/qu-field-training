@@ -239,6 +239,7 @@ model FieldSupervisorProfile {
   organizationId String
   jobTitle       String?
   department     String?
+  smsOnArrival   Boolean @default(false) // رسالة نصية للمشرف عند وصول المتدرب (اختيارية)
 
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization     Organization      @relation(fields: [organizationId], references: [id])

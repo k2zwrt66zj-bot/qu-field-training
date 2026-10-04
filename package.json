@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
@@ -22,6 +23,7 @@
     "test:e2e:phase5": "node --env-file=.env tests/e2e/phase5.e2e.mjs",
     "test:e2e:auth": "node --env-file=.env tests/e2e/auth.e2e.mjs",
     "test:e2e:developer": "node --env-file=.env tests/e2e/developer.e2e.mjs",
+    "test:e2e:sms": "node --env-file=.env tests/e2e/sms.e2e.mjs",
     "test:e2e:all": "npm run db:seed && npm run test:e2e:forms && npm run test:e2e:phase4 && npm run test:e2e:phase5 && npm run db:seed && npm run db:migrate-legacy -- --apply && npm run test:e2e:ui",
     "db:migrate-legacy": "tsx prisma/data-migrations/legacy-to-forms.ts",
     "db:sync-names": "tsx prisma/data-migrations/sync-institution-names.ts",
