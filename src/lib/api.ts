@@ -44,6 +44,7 @@ export function handler<C = unknown>(fn: (req: Request, ctx: C) => Promise<Respo
           { status: 422 }
         );
       }
+      if (e instanceof Error && e.name === "StorageNotConfiguredError") return NextResponse.json({ error: e.message }, { status: 503 });
       console.error(e);
       return NextResponse.json({ error: "خطأ غير متوقع في الخادم" }, { status: 500 });
     }

@@ -6,6 +6,7 @@
 // =====================================================================
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { storageDriver } from "@/lib/storage-driver";
 
 export interface StorageAdapter {
   put(key: string, bytes: Uint8Array, mime: string): Promise<void>;
@@ -58,8 +59,20 @@ class SupabaseStorage implements StorageAdapter {
   }
 }
 
+/** على الاستضافة السحابية (Vercel) القرص مؤقت وللقراءة فقط: التخزين المحلي يفقد الملفات */
+export class StorageNotConfiguredError extends Error {
+  constructor() {
+    super("تخزين المرفقات غير مُعدّ على الخادم: اضبط SUPABASE_URL وSUPABASE_SERVICE_ROLE_KEY في إعدادات الاستضافة");
+    this.name = "StorageNotConfiguredError";
+  }
+}
+
 let instance: StorageAdapter | null = null;
 export function storage(): StorageAdapter {
-  instance ??= process.env.STORAGE_DRIVER === "supabase" ? new SupabaseStorage() : new LocalStorage();
+  if (!instance) {
+    const driver = storageDriver();
+    if (driver === "local" && process.env.VERCEL) throw new StorageNotConfiguredError();
+    instance = driver === "supabase" ? new SupabaseStorage() : new LocalStorage();
+  }
   return instance;
 }

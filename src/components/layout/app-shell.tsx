@@ -11,6 +11,7 @@ import { ROLE_LABELS, INSTITUTION } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 import { LOGO } from "@/lib/brand";
 import { DEVELOPER_CREDIT } from "@/lib/developer";
+import { NavigationProgress } from "./navigation-progress";
 
 const ICONS = { home: House, "map-pin": MapPin, book: BookOpen, users: Users, pen: PenLine, activity: Activity, file: FileText, award: Award, chart: ChartPie, building: Building2, settings: Settings, inbox: Inbox, meeting: UsersRound, sheet: ClipboardCheck, info: Info } as const;
 
@@ -78,6 +79,7 @@ export function AppShell({ user, hiddenHrefs = [], children }: { user: { name: s
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr] print:block">
+      <NavigationProgress />
       {/* الشريط الجانبي (سطح المكتب) */}
       <aside className="sticky top-0 hidden h-screen flex-col gap-4 bg-qu-navy-800 p-4 lg:flex print:!hidden">
         {brand}

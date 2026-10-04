@@ -15,20 +15,28 @@ const WANTED = /-(arabic|latin)-\d+-normal \*\//;
 
 let fontCss: Promise<string> | null = null;
 
-/** @font-face بصيغة data URI مع unicode-range (تُقرأ مرة واحدة وتُخزَّن) */
+/**
+ * @font-face بصيغة data URI مع unicode-range (تُقرأ مرة واحدة وتُخزَّن).
+ * الملفات مضمّنة في حزمة الخادم عبر outputFileTracingIncludes في next.config.ts؛
+ * وإن تعذّرت قراءة أحدها لا يتعطل المستند: يُعرض بخط النظام بدل الخط المضمّن.
+ */
 export function embeddedFonts(): Promise<string> {
   fontCss ??= (async () => {
     const parts: string[] = [];
     for (const rel of FONT_CSS) {
-      const file = path.join(process.cwd(), "node_modules", rel);
-      const dir = path.dirname(file);
-      const css = await readFile(file, "utf8");
-      for (const block of css.split(/(?=\/\* )/)) {
-        if (!WANTED.test(block)) continue;
-        const woff2 = block.match(/url\(\.\/files\/([^)]+\.woff2)\)/)?.[1];
-        if (!woff2) continue;
-        const b64 = (await readFile(path.join(dir, "files", woff2))).toString("base64");
-        parts.push(block.replace(/src:[^;]+;/, `src: url(data:font/woff2;base64,${b64}) format('woff2');`));
+      try {
+        const file = path.join(process.cwd(), "node_modules", rel);
+        const dir = path.dirname(file);
+        const css = await readFile(file, "utf8");
+        for (const block of css.split(/(?=\/\* )/)) {
+          if (!WANTED.test(block)) continue;
+          const woff2 = block.match(/url\(\.\/files\/([^)]+\.woff2)\)/)?.[1];
+          if (!woff2) continue;
+          const b64 = (await readFile(path.join(dir, "files", woff2))).toString("base64");
+          parts.push(block.replace(/src:[^;]+;/, `src: url(data:font/woff2;base64,${b64}) format('woff2');`));
+        }
+      } catch (e) {
+        console.error(`[pdf] تعذّر تضمين الخط ${rel}:`, (e as Error).message);
       }
     }
     return parts.join("\n");
@@ -36,9 +44,22 @@ export function embeddedFonts(): Promise<string> {
   return fontCss;
 }
 
+/** رابط الشعار العام: بديل حين لا يتوفر ملف الشعار على الخادم (يُحمَّل من الموقع نفسه) */
+const LOGO_PUBLIC_PATH = "/brand/qu-logo.png";
+
 let logo: Promise<string> | null = null;
-export function logoDataUri(): Promise<string> {
-  logo ??= readFile(path.join(process.cwd(), process.env.LOGO_PATH ?? "public/brand/qu-logo.png")).then((b) => `data:image/png;base64,${b.toString("base64")}`);
+/** الشعار الرسمي data URI؛ وإن تعذّرت قراءته من القرص يُستخدم رابطه العام فلا تتعطل الصفحة */
+export function logoDataUri(baseUrl = process.env.APP_PUBLIC_URL ?? ""): Promise<string> {
+  logo ??= (async () => {
+    const file = process.env.LOGO_PATH ?? "public/brand/qu-logo.png";
+    const buf = await readFile(path.join(process.cwd(), file));
+    const mime = file.endsWith(".svg") ? "image/svg+xml" : file.endsWith(".jpg") || file.endsWith(".jpeg") ? "image/jpeg" : "image/png";
+    return `data:${mime};base64,${buf.toString("base64")}`;
+  })().catch((e) => {
+    console.error("[pdf] تعذّرت قراءة ملف الشعار:", (e as Error).message);
+    logo = null; // محاولة القراءة من جديد في الطلب التالي
+    return `${baseUrl}${LOGO_PUBLIC_PATH}`;
+  });
   return logo;
 }
 

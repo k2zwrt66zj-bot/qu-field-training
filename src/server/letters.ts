@@ -1,5 +1,3 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { randomBytes } from "node:crypto";
 import QRCode from "qrcode";
 import type { LetterType } from "@prisma/client";
@@ -7,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { INSTITUTION, MAJOR_LABELS } from "@/lib/labels";
 import { formatDateAr, formatHijri } from "@/lib/time";
 import { BRAND } from "@/lib/brand";
-import { embeddedFonts, htmlToPdf } from "@/server/pdf/engine";
+import { embeddedFonts, htmlToPdf, logoDataUri } from "@/server/pdf/engine";
 
 export const LETTER_TYPE_LABELS: Record<LetterType, string> = {
   REFERRAL: "خطاب توجيه متدرب",
@@ -42,13 +40,6 @@ export async function issueLetter(placementId: string, type: LetterType, issuedB
   throw new Error("unreachable");
 }
 
-async function logoDataUri(): Promise<string> {
-  const file = process.env.LOGO_PATH ?? "public/brand/qu-logo.png";
-  const buf = await readFile(path.join(process.cwd(), file));
-  const mime = file.endsWith(".png") ? "image/png" : file.endsWith(".jpg") ? "image/jpeg" : "image/svg+xml";
-  return `data:${mime};base64,${buf.toString("base64")}`;
-}
-
 const esc = (s: string | null | undefined) =>
   (s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
@@ -74,7 +65,7 @@ export async function renderLetterHtml(letterId: string, baseUrl: string, opts: 
   const studentWord = isFemale ? "الطالبة" : "الطالب";
   const verifyUrl = `${baseUrl}/verify/${letter.verificationCode}`;
   const qr = await QRCode.toDataURL(verifyUrl, { margin: 0, width: 160, color: { dark: BRAND.navy } });
-  const logo = await logoDataUri();
+  const logo = await logoDataUri(baseUrl);
   const addressee = p.organization.contactTitle ?? "سعادة مدير";
 
   const bodies: Record<LetterType, string> = {
