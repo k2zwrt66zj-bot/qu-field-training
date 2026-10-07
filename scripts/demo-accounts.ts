@@ -1,9 +1,10 @@
 /* حسابات العرض أمام العميد — تُنشأ بعد بيانات العرض (npm run demo:data)
  *
  *   طالب يبدأ رحلته من الصفر: عبدالملك العتيبي (441100100@qu.edu.sa)
- *     موزَّع على مؤسسة المشرف المؤسسي field1@example.sa، بحالة «موزَّع» بلا أي نموذج أو حضور،
+ *     موزَّع على مؤسسة المشرف المؤسسي field1@example.sa (مستشفى بريدة المركزي)، بحالة «موزَّع» بلا أي نموذج أو حضور،
  *     فيظهر كأول دخول: نموذج المباشرة ← توقيع المشرف المؤسسي ومدير المؤسسة ← إحاطة المشرف الأكاديمي ← بقية النماذج
  *   مشرفان أكاديميان: ناهس عائض العمري (مشرف عبدالملك) · الأمين محمد البشير
+ *   مشرف مؤسسي خاص بعبدالملك: أ. خالد الشمري، ومدير المؤسسة: د. سليمان الحربي
  *
  * كل تشغيل يعيد رحلة عبدالملك إلى البداية (للتجربة ثم العرض) ولا يمس أي بيانات أخرى.
  * التشغيل: npm run demo:accounts
@@ -18,13 +19,16 @@ const FIELD_SUPERVISOR_EMAIL = "field1@example.sa";
 
 export const DEMO_ACCOUNTS = {
   student: { email: "441100100@qu.edu.sa", universityId: "441100100", fullName: "عبدالملك العتيبي", phone: "0551000100" },
+  fieldSupervisor: { email: "khalid.alshammari@example.sa", fullName: "أ. خالد الشمري", phone: "0551000301", jobTitle: "أخصائي اجتماعي أول" },
+  directorName: "د. سليمان الحربي",
+  organizationEmail: "socialwork@example.sa",
   academics: [
     { email: "nahes.alomari@qu.edu.sa", fullName: "ناهس عائض العمري", phone: "0551000201" },
     { email: "alameen.albasheer@qu.edu.sa", fullName: "الأمين محمد البشير", phone: "0551000202" },
   ],
 };
 
-async function upsertUser(email: string, fullName: string, role: "STUDENT" | "ACADEMIC_SUPERVISOR", phone: string, passwordHash: string) {
+async function upsertUser(email: string, fullName: string, role: "STUDENT" | "ACADEMIC_SUPERVISOR" | "FIELD_SUPERVISOR", phone: string, passwordHash: string) {
   return prisma.user.upsert({
     where: { email },
     update: { fullName, role, phone, isActive: true, passwordHash, deviceId: null },
@@ -47,6 +51,19 @@ async function main() {
     academics.push(await prisma.academicSupervisorProfile.upsert({ where: { userId: u.id }, update: {}, create: { userId: u.id, maxStudents: 15 } }));
   }
 
+  // المشرف المؤسسي لعبدالملك في مؤسسة field1 نفسها، واسم مدير المؤسسة وبريدها (يظهران في نموذج المباشرة)
+  const fsAcc = DEMO_ACCOUNTS.fieldSupervisor;
+  const fsUser = await upsertUser(fsAcc.email, fsAcc.fullName, "FIELD_SUPERVISOR", fsAcc.phone, passwordHash);
+  const fsProfile = await prisma.fieldSupervisorProfile.upsert({
+    where: { userId: fsUser.id },
+    update: { organizationId: field.organizationId, jobTitle: fsAcc.jobTitle },
+    create: { userId: fsUser.id, organizationId: field.organizationId, jobTitle: fsAcc.jobTitle },
+  });
+  await prisma.organization.update({
+    where: { id: field.organizationId },
+    data: { directorName: DEMO_ACCOUNTS.directorName, contactEmail: field.organization.contactEmail ?? DEMO_ACCOUNTS.organizationEmail },
+  });
+
   // الطالب
   const s = DEMO_ACCOUNTS.student;
   const su = await upsertUser(s.email, s.fullName, "STUDENT", s.phone, passwordHash);
@@ -64,7 +81,7 @@ async function main() {
       studentId: profile.id,
       termId: term.id,
       organizationId: field.organizationId,
-      fieldSupervisorId: field.id,
+      fieldSupervisorId: fsProfile.id,
       academicSupervisorId: academics[0].id,
       sectionId: section?.id,
       startDate: today < term.startDate ? term.startDate : today,
@@ -78,7 +95,8 @@ async function main() {
   console.log(removed.count ? "↻ أُعيدت رحلة الطالب إلى البداية" : "✓ أُنشئ إسناد الطالب");
   console.log(`\nحسابات العرض (كلمة المرور: ${PASSWORD})`);
   console.log(`  طالب (أول دخول):     ${s.email} — ${s.fullName}`);
-  console.log(`     جهة التدريب:     ${field.organization.name} · المشرف المؤسسي ${FIELD_SUPERVISOR_EMAIL}`);
+  console.log(`     جهة التدريب:     ${field.organization.name} · مديرها ${DEMO_ACCOUNTS.directorName}`);
+  console.log(`  مشرف مؤسسي:         ${fsAcc.email} — ${fsAcc.fullName} (مشرف عبدالملك في المؤسسة)`);
   console.log(`     الإسناد:          ${placement.id}`);
   for (const [i, a] of DEMO_ACCOUNTS.academics.entries()) {
     console.log(`  مشرف أكاديمي:        ${a.email} — ${a.fullName}${i === 0 ? " (مشرف عبدالملك)" : ""}`);

@@ -8,7 +8,7 @@ import { execSync } from "node:child_process";
 
 const B = process.env.E2E_BASE_URL ?? "http://127.0.0.1:3000";
 const SHOTS = process.env.SHOTS;
-const ST = "441100100@qu.edu.sa", FS = "field1@example.sa", AC = "nahes.alomari@qu.edu.sa", AC2 = "alameen.albasheer@qu.edu.sa";
+const ST = "441100100@qu.edu.sa", FS = "khalid.alshammari@example.sa", AC = "nahes.alomari@qu.edu.sa", AC2 = "alameen.albasheer@qu.edu.sa";
 
 let pass = 0, fail = 0;
 const check = (cond, label, extra) => {
@@ -70,7 +70,7 @@ await shot(st, "demo-03-commencement-draft");
 await act(st, "رفع النموذج");
 check((await badge(st)).includes("بانتظار توقيع المشرف المؤسسي"), "رُفع بتوقيع الطالب");
 
-section("ج) المشرف المؤسسي يوقّع مع مدير المؤسسة");
+section("ج) المشرف المؤسسي أ. خالد الشمري يوقّع مع مدير المؤسسة");
 const fs = await as(FS);
 await fs.goto(B + "/queue");
 const card = fs.locator('[data-student="441100100"]');
@@ -79,6 +79,8 @@ await card.getByRole("link", { name: /مباشرة/ }).click();
 await fs.waitForURL(/\/forms\//);
 await act(fs, "توقيع المشرف المؤسسي واعتماده");
 check((await badge(fs)).includes("موقّع — بانتظار الاعتماد الأكاديمي"), "وُقّع من المشرف ومدير المؤسسة");
+const sigs = await fs.locator("main").innerText();
+check(sigs.includes("أ. خالد الشمري") && sigs.includes("د. سليمان الحربي"), "اسما المشرف المؤسسي ومدير المؤسسة في التواقيع");
 await shot(fs, "demo-04-signed");
 
 section("د) المشرف الأكاديمي ناهس عائض العمري");

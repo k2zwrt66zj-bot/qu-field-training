@@ -95,7 +95,8 @@ npm run dev        # http://localhost:3000
 
 | الحساب | الدور |
 |---|---|
-| `441100100@qu.edu.sa` | عبدالملك العتيبي — طالب في أول دخول، موزَّع على مؤسسة `field1@example.sa` بلا أي نموذج |
+| `441100100@qu.edu.sa` | عبدالملك العتيبي — طالب في أول دخول، موزَّع على مستشفى بريدة المركزي بلا أي نموذج |
+| `khalid.alshammari@example.sa` | أ. خالد الشمري — مشرف مؤسسي لعبدالملك (مدير المؤسسة: د. سليمان الحربي) |
 | `nahes.alomari@qu.edu.sa` | ناهس عائض العمري — مشرف أكاديمي (مشرف عبدالملك) |
 | `alameen.albasheer@qu.edu.sa` | الأمين محمد البشير — مشرف أكاديمي |
 
@@ -386,7 +387,7 @@ npm run test:e2e:auth     # 15 فحصاً للجلسات والدخول والخ
                           # (AUTH_BASE_URL=http://127.0.0.1:3000، والخادم بـ AUTH_USER_RECHECK_SECONDS=0)
                           # (يتطلب: npm run db:seed && npm run db:migrate-legacy -- --apply)
                           # أول مرة: npx playwright install chromium (أو اضبط CHROME_EXECUTABLE_PATH)
-npm run test:e2e:demo      # 14 فحصاً: بروفة رحلة «عبدالملك العتيبي» من أول دخول حتى اعتماد المباشرة (ثم تعيدها للبداية)
+npm run test:e2e:demo      # 15 فحصاً: بروفة رحلة «عبدالملك العتيبي» من أول دخول حتى اعتماد المباشرة (ثم تعيدها للبداية)
 npm run test:e2e:sms       # 14 فحصاً: إعداد رسالة الوصول، وتسجيلها عند التحضير، وإيقافها
 npm run test:e2e:developer # 40 فحصاً: صفحة المطور، والرابط لكل الأدوار، والتذييل، والبيانات الوصفية
 npm run db:sync-names     # مزامنة اسمي رئيس القسم ورئيسة الوحدة في القاعدة مع src/lib/labels.ts (-- --apply للتنفيذ)
