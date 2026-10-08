@@ -59,6 +59,20 @@ check((await text(st.locator('[data-kind="SKILLS_LOG"]'))).includes("بعد اع
 check((await st.locator("dl").first().innerText()).includes("441100100"), "بيانات الطالب من الإسناد");
 await shot(st, "demo-02-portfolio-first-time");
 
+section("أ٢) صفحات رئيسة وحدة التدريب: عبدالملك ومشرفوه ظاهرون");
+const th = await as("bushra.aldubaikhi@qu.edu.sa");
+const awaitingCard = th.locator("[data-awaiting-commencement]");
+const awaitingText = await text(awaitingCard);
+check(awaitingText.includes("عبدالملك العتيبي") && awaitingText.includes("ناهس عائض العمري") && awaitingText.includes("أ. خالد الشمري"), "لوحة المتابعة: عبدالملك بانتظار المباشرة مع مشرفيه", awaitingText.slice(0, 200));
+await th.goto(B + "/training-head/supervisors");
+check((await text(th.locator(`[data-supervisor="${AC}"]`))).includes("عبدالملك العتيبي"), "المشرفون: ناهس العمري ومعه عبدالملك");
+check((await text(th.locator(`[data-supervisor="${AC2}"]`))).includes("لا يوجد متدربون مسندون بعد"), "المشرفون: الأمين محمد البشير ظاهر (بلا متدربين)");
+check((await text(th.locator(`[data-supervisor="${FS}"]`))).includes("عبدالملك العتيبي"), "المشرفون: أ. خالد الشمري ومعه عبدالملك");
+await shot(th, "demo-00-th-supervisors");
+await th.goto(B + "/training-head/grades");
+check((await text(th.locator("main"))).includes("عبدالملك العتيبي"), "اعتماد النتائج: عبدالملك ظاهر (بانتظار المباشرة)");
+await th.context().close();
+
 section("ب) نموذج المباشرة ورفعه بتوقيع الطالب");
 await st.locator('[data-kind="COMMENCEMENT"]').getByRole("button", { name: "إنشاء" }).click();
 await st.waitForURL(/\/forms\//);

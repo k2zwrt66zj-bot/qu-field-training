@@ -1,5 +1,7 @@
 import { AlarmClock, CircleAlert, ClipboardCheck, ShieldAlert, UserCheck, Users } from "lucide-react";
+import Link from "next/link";
 import { requirePageRole } from "@/lib/auth/session";
+import { prisma } from "@/lib/prisma";
 import { getActiveTerm, getTrainingHeadStats } from "@/server/stats";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -8,7 +10,7 @@ import { AutoRefresh, ResolveAlertButton } from "@/components/dashboard/live-wid
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
-import { formatTimeAr } from "@/lib/time";
+import { formatShortDateAr, formatTimeAr } from "@/lib/time";
 
 export const metadata = { title: "لوحة المتابعة اللحظية" };
 export const dynamic = "force-dynamic";
@@ -19,8 +21,29 @@ export default async function TrainingHeadDashboard() {
   await requirePageRole("TRAINING_HEAD");
   const term = await getActiveTerm();
   if (!term) return <p>لا يوجد فصل دراسي معرّف.</p>;
-  const s = await getTrainingHeadStats(term.id);
+  const [s, awaiting] = await Promise.all([
+    getTrainingHeadStats(term.id),
+    // طلاب وُزّعوا ولم يباشروا بعد (نموذج المباشرة لم يُعتمد): مع مشرفيهم
+    prisma.placement.findMany({
+      where: { termId: term.id, status: "ASSIGNED" },
+      select: {
+        id: true,
+        startDate: true,
+        student: { select: { universityId: true, user: { select: { fullName: true } } } },
+        organization: { select: { name: true } },
+        academicSupervisor: { select: { user: { select: { fullName: true } } } },
+        fieldSupervisor: { select: { user: { select: { fullName: true } } } },
+        forms: { where: { kind: "COMMENCEMENT" }, select: { status: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
   const k = s.kpis;
+  const commencementStep = (st?: string) =>
+    !st ? { text: "لم يبدأ نموذج المباشرة", v: "muted" as const }
+    : st === "DRAFT" || st === "RETURNED" ? { text: "يعبّئ نموذج المباشرة", v: "muted" as const }
+    : st === "SUBMITTED" ? { text: "بانتظار توقيع المشرف المؤسسي", v: "warning" as const }
+    : { text: "بانتظار الاعتماد الأكاديمي", v: "teal" as const };
 
   return (
     <>
@@ -65,7 +88,38 @@ export default async function TrainingHeadDashboard() {
         </Card>
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-2">
+      <Card className="mt-4" data-awaiting-commencement>
+        <CardHeader className="flex-row flex-wrap items-start justify-between gap-2 space-y-0">
+          <div className="space-y-1.5">
+            <CardTitle>بانتظار المباشرة ({awaiting.length})</CardTitle>
+            <CardDescription>طلاب وُزّعوا على جهات التدريب ولم يُعتمد نموذج مباشرتهم بعد، مع مشرفيهم</CardDescription>
+          </div>
+          <Link href="/training-head/supervisors" className="text-sm text-qu-teal-700 hover:underline">كل المشرفين والمتدربين ←</Link>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <THead><TR><TH>الطالب/ة</TH><TH>جهة التدريب</TH><TH>المشرف الأكاديمي</TH><TH>المشرف المؤسسي</TH><TH>بداية التدريب</TH><TH>المرحلة</TH></TR></THead>
+            <TBody>
+              {awaiting.length === 0 && <TR><TD colSpan={6} className="py-6 text-center text-muted-foreground">باشر جميع الطلاب الموزعين</TD></TR>}
+              {awaiting.map((a) => {
+                const step = commencementStep(a.forms[0]?.status);
+                return (
+                  <TR key={a.id}>
+                    <TD><div className="font-medium">{a.student.user.fullName}</div><div className="text-xs text-muted-foreground">{a.student.universityId}</div></TD>
+                    <TD className="text-xs">{a.organization.name}</TD>
+                    <TD className="text-sm">{a.academicSupervisor?.user.fullName ?? "—"}</TD>
+                    <TD className="text-sm">{a.fieldSupervisor?.user.fullName ?? "—"}</TD>
+                    <TD className="whitespace-nowrap text-xs">{formatShortDateAr(a.startDate)}</TD>
+                    <TD><Badge variant={step.v}>{step.text}</Badge></TD>
+                  </TR>
+                );
+              })}
+            </TBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-2 [&>*]:min-w-0">
         <Card>
           <CardHeader>
             <CardTitle>الحالات الحرجة</CardTitle>

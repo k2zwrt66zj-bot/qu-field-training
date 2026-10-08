@@ -21,6 +21,8 @@ export interface GradeRow {
   missing: string[];
   /** التدريب بالمحاكاة: لا مشرف مؤسسي، ووزنه منقول إلى الأكاديمي */
   simulation: boolean;
+  /** موزَّع لم يباشر التدريب بعد: لا درجات */
+  awaitingCommencement?: boolean;
 }
 
 export function GradesManager({ termId, rows, weights }: { termId: string; rows: GradeRow[]; weights: { f: number; a: number; t: number } }) {
@@ -94,7 +96,8 @@ export function GradesManager({ termId, rows, weights }: { termId: string; rows:
                   <TD className="font-bold tabular-nums">{r.total ?? "—"}</TD>
                   <TD dir="ltr" className="text-right font-semibold">{r.letter ?? "—"}</TD>
                   <TD>
-                    {r.status == null ? <Badge variant="muted">لم تُحتسب</Badge>
+                    {r.awaitingCommencement ? <Badge variant="muted">بانتظار المباشرة</Badge>
+                      : r.status == null ? <Badge variant="muted">لم تُحتسب</Badge>
                       : r.status !== "CALCULATED" ? <Badge variant="success">معتمدة</Badge>
                       : r.missing.length ? <Badge variant="warning" title={r.missing.join("، ")}>ناقص: {r.missing.join("، ")}</Badge>
                       : <Badge variant="teal">جاهزة للاعتماد</Badge>}

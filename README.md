@@ -397,7 +397,7 @@ npm run test:e2e:auth     # 15 فحصاً للجلسات والدخول والخ
                           # (يتطلب: npm run db:seed && npm run db:migrate-legacy -- --apply)
                           # أول مرة: npx playwright install chromium (أو اضبط CHROME_EXECUTABLE_PATH)
 npm run test:e2e:security  # 27 فحصاً: القفل المؤقت، وكلمة المرور المؤقتة وتغييرها، واعتماد يوم بلا انصراف ورفضه بسبب، والترويسات
-npm run test:e2e:demo      # 15 فحصاً: بروفة رحلة «عبدالملك العتيبي» من أول دخول حتى اعتماد المباشرة (ثم تعيدها للبداية)
+npm run test:e2e:demo      # 20 فحصاً: بروفة رحلة «عبدالملك العتيبي» من أول دخول حتى اعتماد المباشرة (ثم تعيدها للبداية)
 npm run test:e2e:sms       # 14 فحصاً: إعداد رسالة الوصول، وتسجيلها عند التحضير، وإيقافها
 npm run test:e2e:developer # 40 فحصاً: صفحة المطور، والرابط لكل الأدوار، والتذييل، والبيانات الوصفية
 npm run db:sync-names     # مزامنة اسمي رئيس القسم ورئيسة الوحدة في القاعدة مع src/lib/labels.ts (-- --apply للتنفيذ)

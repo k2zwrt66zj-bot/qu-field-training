@@ -13,7 +13,8 @@ export default async function GradesPage() {
   const term = await getActiveTerm();
   if (!term) return <p>لا يوجد فصل دراسي معرّف.</p>;
   const placements = await prisma.placement.findMany({
-    where: { termId: term.id, status: { in: ["ACTIVE", "COMPLETED"] } },
+    // يظهر الطالب الموزَّع الذي لم يباشر بعد (بلا درجات)، فلا يغيب أحد عن كشف الفصل
+    where: { termId: term.id, status: { in: ["ASSIGNED", "ACTIVE", "COMPLETED"] } },
     include: { student: { include: { user: true } }, organization: true, finalGrade: true, section: { select: { mode: true } } },
     orderBy: { student: { universityId: "asc" } },
   });
@@ -32,6 +33,7 @@ export default async function GradesPage() {
       status: g?.status ?? null,
       missing: ((g?.breakdown as { missing?: string[] } | null)?.missing) ?? [],
       simulation: p.section?.mode === "SIMULATION",
+      awaitingCommencement: p.status === "ASSIGNED",
     };
   });
   return (

@@ -35,6 +35,7 @@ export const NAV: Record<Role, NavItem[]> = {
     { href: "/meetings", label: "الاجتماعات الإشرافية", icon: "meeting" },
     { href: "/attendance-sheets", label: "كشوف الحضور", icon: "sheet" },
     { href: "/training-head/placements", label: "التوزيع والخطابات", icon: "file" },
+    { href: "/training-head/supervisors", label: "المشرفون والمتدربون", icon: "users" },
     { href: "/training-head/organizations", label: "جهات التدريب", icon: "building" },
     { href: "/training-head/settings", label: "بنود التقييم والإعدادات", icon: "settings" },
     { href: "/training-head/grades", label: "اعتماد النتائج", icon: "award" },
