@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Building2, GraduationCap, Mail, Phone, UserRound } from "lucide-react";
 import type { PlacementStatus } from "@prisma/client";
 import { requirePageRole } from "@/lib/auth/session";
@@ -57,7 +58,7 @@ export default async function SupervisorsPage() {
         {list.map((p) => (
           <li key={p.id} className="flex items-center justify-between gap-3 py-2 text-sm">
             <div className="min-w-0">
-              <div className="font-medium">{p.student.user.fullName}</div>
+              <Link href={`/portfolio/${p.id}`} className="font-medium hover:text-qu-teal-700 hover:underline">{p.student.user.fullName}</Link>
               <div className="text-xs text-muted-foreground">
                 {p.student.universityId}
                 {showOrg && ` · ${p.organization.name}`}

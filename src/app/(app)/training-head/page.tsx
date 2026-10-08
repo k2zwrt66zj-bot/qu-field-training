@@ -33,7 +33,7 @@ export default async function TrainingHeadDashboard() {
         organization: { select: { name: true } },
         academicSupervisor: { select: { user: { select: { fullName: true } } } },
         fieldSupervisor: { select: { user: { select: { fullName: true } } } },
-        forms: { where: { kind: "COMMENCEMENT" }, select: { status: true } },
+        forms: { where: { kind: "COMMENCEMENT" }, select: { id: true, status: true } },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -94,15 +94,20 @@ export default async function TrainingHeadDashboard() {
             <CardTitle>بانتظار المباشرة ({awaiting.length})</CardTitle>
             <CardDescription>طلاب وُزّعوا على جهات التدريب ولم يُعتمد نموذج مباشرتهم بعد، مع مشرفيهم</CardDescription>
           </div>
-          <Link href="/training-head/supervisors" className="text-sm text-qu-teal-700 hover:underline">كل المشرفين والمتدربين ←</Link>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <Link href="/training-head/commencements" className="text-qu-teal-700 hover:underline">كل نماذج المباشرة ←</Link>
+            <Link href="/training-head/supervisors" className="text-qu-teal-700 hover:underline">كل المشرفين والمتدربين ←</Link>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
-            <THead><TR><TH>الطالب/ة</TH><TH>جهة التدريب</TH><TH>المشرف الأكاديمي</TH><TH>المشرف المؤسسي</TH><TH>بداية التدريب</TH><TH>المرحلة</TH></TR></THead>
+            <THead><TR><TH>الطالب/ة</TH><TH>جهة التدريب</TH><TH>المشرف الأكاديمي</TH><TH>المشرف المؤسسي</TH><TH>بداية التدريب</TH><TH>المرحلة</TH><TH></TH></TR></THead>
             <TBody>
-              {awaiting.length === 0 && <TR><TD colSpan={6} className="py-6 text-center text-muted-foreground">باشر جميع الطلاب الموزعين</TD></TR>}
+              {awaiting.length === 0 && <TR><TD colSpan={7} className="py-6 text-center text-muted-foreground">باشر جميع الطلاب الموزعين</TD></TR>}
               {awaiting.map((a) => {
                 const step = commencementStep(a.forms[0]?.status);
+                // المسودة خاصة بالطالب حتى يرفعها
+                const form = a.forms[0]?.status && a.forms[0].status !== "DRAFT" ? a.forms[0] : null;
                 return (
                   <TR key={a.id}>
                     <TD><div className="font-medium">{a.student.user.fullName}</div><div className="text-xs text-muted-foreground">{a.student.universityId}</div></TD>
@@ -111,6 +116,11 @@ export default async function TrainingHeadDashboard() {
                     <TD className="text-sm">{a.fieldSupervisor?.user.fullName ?? "—"}</TD>
                     <TD className="whitespace-nowrap text-xs">{formatShortDateAr(a.startDate)}</TD>
                     <TD><Badge variant={step.v}>{step.text}</Badge></TD>
+                    <TD className="whitespace-nowrap text-xs">
+                      {form
+                        ? <Link href={`/forms/${form.id}`} className="font-medium text-qu-teal-700 hover:underline">نموذج المباشرة</Link>
+                        : <Link href={`/portfolio/${a.id}`} className="text-muted-foreground hover:underline">السجل المهني</Link>}
+                    </TD>
                   </TR>
                 );
               })}

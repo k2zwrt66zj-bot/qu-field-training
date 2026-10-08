@@ -64,14 +64,17 @@ const th = await as("bushra.aldubaikhi@qu.edu.sa");
 const awaitingCard = th.locator("[data-awaiting-commencement]");
 const awaitingText = await text(awaitingCard);
 check(awaitingText.includes("عبدالملك العتيبي") && awaitingText.includes("ناهس عائض العمري") && awaitingText.includes("أ. خالد الشمري"), "لوحة المتابعة: عبدالملك بانتظار المباشرة مع مشرفيه", awaitingText.slice(0, 200));
+check(await awaitingCard.getByRole("link", { name: "السجل المهني" }).count() > 0, "لوحة المتابعة: رابط السجل المهني لعبدالملك");
 await th.goto(B + "/training-head/supervisors");
 check((await text(th.locator(`[data-supervisor="${AC}"]`))).includes("عبدالملك العتيبي"), "المشرفون: ناهس العمري ومعه عبدالملك");
 check((await text(th.locator(`[data-supervisor="${AC2}"]`))).includes("لا يوجد متدربون مسندون بعد"), "المشرفون: الأمين محمد البشير ظاهر (بلا متدربين)");
 check((await text(th.locator(`[data-supervisor="${FS}"]`))).includes("عبدالملك العتيبي"), "المشرفون: أ. خالد الشمري ومعه عبدالملك");
 await shot(th, "demo-00-th-supervisors");
+await th.goto(B + "/training-head/commencements");
+const thRow = () => th.locator('[data-commencement="441100100"]');
+check((await text(thRow())).includes("لم يبدأ الطالب النموذج") && !(await thRow().getByRole("link", { name: "عرض النموذج" }).count()), "نماذج المباشرة: عبدالملك لم يبدأ بعد (بلا رابط عرض)");
 await th.goto(B + "/training-head/grades");
 check((await text(th.locator("main"))).includes("عبدالملك العتيبي"), "اعتماد النتائج: عبدالملك ظاهر (بانتظار المباشرة)");
-await th.context().close();
 
 section("ب) نموذج المباشرة ورفعه بتوقيع الطالب");
 await st.locator('[data-kind="COMMENCEMENT"]').getByRole("button", { name: "إنشاء" }).click();
@@ -96,6 +99,19 @@ check((await badge(fs)).includes("موقّع — بانتظار الاعتماد
 const sigs = await fs.locator("main").innerText();
 check(sigs.includes("أ. خالد الشمري") && sigs.includes("د. سليمان الحربي"), "اسما المشرف المؤسسي ومدير المؤسسة في التواقيع");
 await shot(fs, "demo-04-signed");
+
+section("ج2) رئيسة الوحدة د. بشرى ترى نموذج المباشرة الموقّع");
+await th.goto(B + "/training-head/commencements");
+check((await text(thRow())).includes("موقّع — بانتظار الاعتماد الأكاديمي"), "نماذج المباشرة: حالة نموذج عبدالملك ظاهرة", await text(thRow()));
+check((await text(th.locator("nav[aria-label='تصفية حسب الحالة']"))).includes("بانتظار الاعتماد الأكاديمي"), "تصفية حسب الحالة");
+const pdfHref = await thRow().getByRole("link", { name: "PDF" }).getAttribute("href");
+const pdfRes = await th.request.get(B + pdfHref, { maxRedirects: 0 });
+check(pdfRes.status() < 400, "رابط PDF نموذج المباشرة يعمل لرئيسة الوحدة", pdfRes.status());
+await thRow().getByRole("link", { name: "عرض النموذج" }).click();
+await th.waitForURL(/\/forms\//);
+const thForm = await th.locator("main").innerText();
+check(thForm.includes("أ. خالد الشمري") && thForm.includes("عبدالملك العتيبي"), "رئيسة الوحدة تفتح نموذج المباشرة بتواقيعه");
+await shot(th, "demo-04b-training-head");
 
 section("د) المشرف الأكاديمي ناهس عائض العمري");
 const ac = await as(AC);

@@ -80,6 +80,10 @@ const orgId = (await call(F, "GET", "/api/attendance-sheets")).organization.id;
 // ------------------------------------------------------------------ 1) المباشرة
 await flow("COMMENCEMENT", { fixedTrainingDay: 0, shift: "MORNING", declarationAccepted: true }, { studentSig: true });
 log("مباشرة التدريب: توقيع الطالب والمشرف المؤسسي ومدير المؤسسة، واعتماد أكاديمي");
+// نماذج مباشرة لزميلين في المراحل الوسيطة (تظهر في «نماذج المباشرة» لرئيسة الوحدة وفي قوائم الاعتماد)
+await flow("COMMENCEMENT", { fixedTrainingDay: 1, shift: "MORNING", declarationAccepted: true }, { studentSig: true, email: "441100003@qu.edu.sa", until: "SIGNED" });
+await flow("COMMENCEMENT", { fixedTrainingDay: 2, shift: "MORNING", declarationAccepted: true }, { studentSig: true, email: "441100005@qu.edu.sa", until: "SUBMITTED" });
+log("مباشرة زميلين: موقّعة بانتظار الاعتماد الأكاديمي، ومرفوعة بانتظار توقيع المشرف المؤسسي");
 
 // ------------------------------------------------------------------ 2) التقرير التعريفي
 await flow("ORGANIZATION_PROFILE", {
