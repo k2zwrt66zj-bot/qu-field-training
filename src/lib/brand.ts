@@ -18,6 +18,8 @@ export const BRAND = {
 export const CHART_CATEGORICAL = [BRAND.navyMid, BRAND.teal] as const;
 
 export const LOGO = {
-  full: "/brand/qu-logo.png", // الشعار الرسمي الكامل (800×279)
+  full: "/brand/qu-logo.png", // الشعار الرسمي الكامل (800×279) — على خلفية بيضاء (للخطابات وPDF)
+  transparent: "/brand/qu-logo-transparent.png", // الشعار الكامل بلا خلفية (752×195) للخلفيات الفاتحة
+  white: "/brand/qu-logo-white.png", // نسخة بيضاء بشبكة فيروزية (752×195) للخلفيات الكحلية
   emblem: "/brand/emblem-192.png", // الرمز الشبكي فقط (مربع)
 } as const;
