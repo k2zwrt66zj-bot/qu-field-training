@@ -182,6 +182,12 @@ model User {
   isActive     Boolean   @default(true)
   deviceId     String? // الجهاز المسجَّل للتحضير (للطلاب)
   lastLoginAt  DateTime?
+
+  // أمان الدخول
+  failedLogins       Int       @default(0) // محاولات خاطئة متتالية (تُصفَّر بعد الدخول الناجح أو القفل)
+  lockedUntil        DateTime? // قفل مؤقت بعد تكرار كلمة المرور الخاطئة
+  mustChangePassword Boolean   @default(false) // كلمة مرور مؤقتة: يُطلب تغييرها عند أول دخول
+  passwordChangedAt  DateTime? // تغيير كلمة المرور يُنهي الجلسات الأخرى
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 

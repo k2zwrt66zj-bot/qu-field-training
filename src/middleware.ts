@@ -16,6 +16,10 @@ export default withAuth(
   function middleware(req) {
     const role = req.nextauth.token?.role as Role | undefined;
     const path = req.nextUrl.pathname;
+    // كلمة مرور مؤقتة: لا وصول لأي صفحة قبل تغييرها
+    if (req.nextauth.token?.mustChangePassword && path !== "/account") {
+      return NextResponse.redirect(new URL("/account?required=1", req.nextUrl.origin));
+    }
     const rule = ROUTE_ROLES.find(([prefix]) => path.startsWith(prefix));
     if (rule && role && role !== "ADMIN" && !rule[1].includes(role)) {
       // مسار نسبي إلى نطاق الطلب الحالي
@@ -32,5 +36,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/student/:path*", "/field-supervisor/:path*", "/academic-supervisor/:path*", "/training-head/:path*", "/department-head/:path*", "/letters/:path*", "/forms/:path*", "/portfolio/:path*", "/queue/:path*", "/queue", "/meetings/:path*", "/attendance-sheets/:path*", "/developer"],
+  matcher: ["/student/:path*", "/field-supervisor/:path*", "/academic-supervisor/:path*", "/training-head/:path*", "/department-head/:path*", "/letters/:path*", "/forms/:path*", "/portfolio/:path*", "/queue/:path*", "/queue", "/meetings/:path*", "/attendance-sheets/:path*", "/developer", "/account"],
 };

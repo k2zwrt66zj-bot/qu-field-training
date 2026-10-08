@@ -40,7 +40,10 @@ export default async function StudentAttendancePage() {
                   <TD className="whitespace-nowrap tabular-nums">{r.checkInAt ? formatTimeAr(r.checkInAt) : "—"}</TD>
                   <TD className="whitespace-nowrap tabular-nums">{r.checkOutAt ? formatTimeAr(r.checkOutAt) : "—"}</TD>
                   <TD className="whitespace-nowrap tabular-nums">{r.workedMinutes ? `${Math.floor(r.workedMinutes / 60)}:${String(r.workedMinutes % 60).padStart(2, "0")}` : "—"}</TD>
-                  <TD><Badge variant={r.approvalStatus === "APPROVED" ? "success" : r.approvalStatus === "REJECTED" ? "destructive" : "muted"}>{APPROVAL_LABELS[r.approvalStatus]}</Badge></TD>
+                  <TD>
+                    <Badge variant={r.approvalStatus === "APPROVED" ? "success" : r.approvalStatus === "REJECTED" ? "destructive" : "muted"}>{APPROVAL_LABELS[r.approvalStatus]}</Badge>
+                    {r.supervisorNote && <p className="mt-1 max-w-56 text-xs leading-5 text-muted-foreground">ملاحظة المشرف: {r.supervisorNote}</p>}
+                  </TD>
                 </TR>
               ))}
             </TBody>

@@ -35,9 +35,18 @@ export default async function FieldSupervisorPage() {
   });
   const pending = await prisma.attendanceRecord.findMany({
     where: { approvalStatus: "PENDING", placement: { fieldSupervisor: { userId: user.id } } },
-    include: { placement: { select: { student: { select: { user: { select: { fullName: true } } } } } } },
+    include: { placement: { select: { student: { select: { user: { select: { fullName: true } } } }, organization: { select: { workEndTime: true } } } } },
     orderBy: [{ date: "desc" }],
   });
+
+  /** مدة مقترحة لسجل بلا انصراف: من الحضور حتى نهاية الدوام (أو الآن إن لم ينتهِ) */
+  const now = Date.now();
+  const suggestMinutes = (date: Date, checkInAt: Date | null, workEnd: string) => {
+    if (!checkInAt) return 0;
+    const [h, m] = workEnd.split(":").map(Number);
+    const end = date.getTime() + ((h - 3) * 60 + m) * 60_000; // تاريخ اليوم (UTC) + نهاية الدوام بتوقيت الرياض
+    return Math.max(0, Math.min(600, Math.round((Math.min(now, end) - checkInAt.getTime()) / 60_000)));
+  };
 
   const rows: PendingRecord[] = pending.map((r) => ({
     id: r.id,
@@ -46,6 +55,7 @@ export default async function FieldSupervisorPage() {
     checkIn: r.checkInAt ? formatTimeAr(r.checkInAt) : null,
     checkOut: r.checkOutAt ? formatTimeAr(r.checkOutAt) : null,
     workedMinutes: r.workedMinutes,
+    suggestedMinutes: r.checkOutAt ? r.workedMinutes : suggestMinutes(r.date, r.checkInAt, r.placement.organization.workEndTime),
     distance: r.checkInDistance,
     status: r.status,
     isSuspicious: r.isSuspicious,

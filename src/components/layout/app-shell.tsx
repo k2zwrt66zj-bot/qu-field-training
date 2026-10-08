@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 import type { Role } from "@prisma/client";
-import { Activity, Award, BookOpen, Building2, ChartPie, ClipboardCheck, FileText, House, Inbox, Info, LogOut, MapPin, Menu, PenLine, Settings, Users, UsersRound, X } from "lucide-react";
+import { Activity, Award, BookOpen, Building2, ChartPie, ClipboardCheck, FileText, House, Inbox, Info, KeyRound, LogOut, MapPin, Menu, PenLine, Settings, Users, UsersRound, X } from "lucide-react";
 import { COMMON_NAV, NAV } from "./nav";
 import { ROLE_LABELS, INSTITUTION } from "@/lib/labels";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,7 @@ import { LOGO } from "@/lib/brand";
 import { DEVELOPER_CREDIT } from "@/lib/developer";
 import { NavigationProgress } from "./navigation-progress";
 
-const ICONS = { home: House, "map-pin": MapPin, book: BookOpen, users: Users, pen: PenLine, activity: Activity, file: FileText, award: Award, chart: ChartPie, building: Building2, settings: Settings, inbox: Inbox, meeting: UsersRound, sheet: ClipboardCheck, info: Info } as const;
+const ICONS = { home: House, "map-pin": MapPin, book: BookOpen, users: Users, pen: PenLine, activity: Activity, file: FileText, award: Award, chart: ChartPie, building: Building2, settings: Settings, inbox: Inbox, meeting: UsersRound, sheet: ClipboardCheck, info: Info, key: KeyRound } as const;
 
 export function AppShell({ user, hiddenHrefs = [], children }: { user: { name: string; role: Role }; hiddenHrefs?: string[]; children: React.ReactNode }) {
   const pathname = usePathname();

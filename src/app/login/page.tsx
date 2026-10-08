@@ -8,6 +8,7 @@ import { INSTITUTION } from "@/lib/labels";
 import { LOGO } from "@/lib/brand";
 import { safeRelativePath } from "@/lib/auth/redirect";
 import { credentialsLogin } from "@/lib/auth/client-login";
+import { LOCK_MINUTES } from "@/lib/auth/password-policy";
 import { DEVELOPER_CREDIT } from "@/lib/developer";
 
 function LoginForm() {
@@ -24,6 +25,7 @@ function LoginForm() {
     const result = await credentialsLogin(String(fd.get("email") ?? ""), String(fd.get("password") ?? ""));
     setLoading(false);
     if (result === "invalid") return setError("البريد الإلكتروني أو كلمة المرور غير صحيحة");
+    if (result === "locked") return setError(`أُوقف الدخول مؤقتاً بعد تكرار كلمة مرور خاطئة. حاول بعد ${LOCK_MINUTES} دقيقة، أو تواصل مع وحدة التدريب الميداني.`);
     if (result === "error") return setError("تعذر الاتصال بالخادم، حاول مرة أخرى");
     // مسار نسبي آمن فقط: لا إعادة توجيه إلى موقع خارجي عبر ?callbackUrl=https://…
     const next = safeRelativePath(params.get("callbackUrl"), "/");

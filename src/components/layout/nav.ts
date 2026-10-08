@@ -6,7 +6,10 @@ export interface NavItem { href: string; label: string; icon: string }
 export const SITE_BOUND_HREFS = ["/student/attendance"];
 
 /** روابط مشتركة لجميع المستخدمين: أسفل القائمة الجانبية (لا في الشريط السفلي للجوال) */
-export const COMMON_NAV: NavItem[] = [{ href: "/developer", label: "عن المنصة والمطور", icon: "info" }];
+export const COMMON_NAV: NavItem[] = [
+  { href: "/account", label: "الحساب وكلمة المرور", icon: "key" },
+  { href: "/developer", label: "عن المنصة والمطور", icon: "info" },
+];
 
 export const NAV: Record<Role, NavItem[]> = {
   STUDENT: [

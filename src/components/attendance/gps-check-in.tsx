@@ -255,8 +255,8 @@ export function GpsCheckIn() {
               <div className="flex flex-col items-center gap-2 rounded-lg bg-emerald-50 p-4 text-emerald-800">
                 <CircleCheck className="size-8" />
                 <div className="font-semibold">اكتمل تحضير اليوم ({fmtDuration(record!.workedMinutes)})</div>
-                <Badge variant={record!.approvalStatus === "APPROVED" ? "success" : "warning"}>
-                  {record!.approvalStatus === "APPROVED" ? "معتمد من المشرف" : "بانتظار اعتماد المشرف المؤسسي"}
+                <Badge variant={record!.approvalStatus === "APPROVED" ? "success" : record!.approvalStatus === "REJECTED" ? "destructive" : "warning"}>
+                  {record!.approvalStatus === "APPROVED" ? "معتمد من المشرف" : record!.approvalStatus === "REJECTED" ? "رفضه المشرف المؤسسي" : "بانتظار اعتماد المشرف المؤسسي"}
                 </Badge>
               </div>
             ) : (

@@ -34,6 +34,7 @@ export const POST = handler(async (req: Request, { params }: { params: Promise<{
       gender: body.gender,
       role: "FIELD_SUPERVISOR",
       passwordHash: await bcrypt.hash(tempPassword, 10),
+      mustChangePassword: true, // كلمة مرور مؤقتة: تُغيَّر عند أول دخول
       fieldSupervisor: { create: { organizationId: id, jobTitle: body.jobTitle } },
     },
   });
