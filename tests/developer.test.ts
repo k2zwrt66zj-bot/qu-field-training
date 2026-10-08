@@ -16,8 +16,13 @@ test("developer: قنوات التواصل المضبوطة تُعرض", () => {
   assert.equal(developerContacts({ DEVELOPER_LINKEDIN_URL: "https://sa.linkedin.com/in/x" }).linkedin, "https://sa.linkedin.com/in/x");
 });
 
+test("developer: البريد الافتراضي للمطور عند عدم ضبطه في البيئة", () => {
+  assert.equal(developerContacts({}).email, "Abdulmalik.awwadh@gmail.com");
+  assert.equal(developerContacts({ DEVELOPER_EMAIL: "  " }).email, "Abdulmalik.awwadh@gmail.com");
+});
+
 test("developer: غير المضبوط أو غير الصالح يعطّل الزر بدل رابط خاطئ", () => {
-  assert.deepEqual(developerContacts({}), { email: null, linkedin: null });
+  assert.equal(developerContacts({}).linkedin, null);
   assert.equal(developerContacts({ DEVELOPER_EMAIL: "not-an-email" }).email, null);
   assert.equal(developerContacts({ DEVELOPER_LINKEDIN_URL: "javascript:alert(1)" }).linkedin, null);
   assert.equal(developerContacts({ DEVELOPER_LINKEDIN_URL: "https://evil.example/linkedin.com/" }).linkedin, null);

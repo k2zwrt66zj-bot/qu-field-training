@@ -10,6 +10,7 @@ export const DEVELOPER = {
   titleAr: "مؤسس ومطور المنصة",
   titleEn: "Founder & Lead Developer",
   year: 2026,
+  email: "Abdulmalik.awwadh@gmail.com",
 } as const;
 
 /** نص حقوق الملكية الفكرية (بنصه المعتمد) */
@@ -25,13 +26,13 @@ export interface DeveloperContacts {
 }
 
 /**
- * قنوات التواصل من متغيرات البيئة (على الخادم فقط):
+ * قنوات التواصل: البريد افتراضياً DEVELOPER.email، ويمكن تغييرهما من متغيرات البيئة (على الخادم فقط):
  *   DEVELOPER_EMAIL="name@example.com"
  *   DEVELOPER_LINKEDIN_URL="https://www.linkedin.com/in/…"
  * غير المضبوط منها يظهر زراً معطلاً «يُضاف قريباً» بدل رابط غير صحيح.
  */
 export function developerContacts(env: Record<string, string | undefined> = process.env): DeveloperContacts {
-  const email = env.DEVELOPER_EMAIL?.trim() ?? "";
+  const email = env.DEVELOPER_EMAIL?.trim() || DEVELOPER.email;
   const linkedin = env.DEVELOPER_LINKEDIN_URL?.trim() ?? "";
   return {
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null,
