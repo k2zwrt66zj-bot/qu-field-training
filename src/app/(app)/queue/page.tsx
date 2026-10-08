@@ -186,7 +186,7 @@ export default async function QueuePage({ searchParams }: { searchParams: Promis
         </Card>
 
         <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-base">مدة الانتظار</CardTitle><CardDescription>عدد النماذج المعلّقة حسب عمرها</CardDescription></CardHeader>
+          <CardHeader className="pb-3"><CardTitle className="text-base">مدة الانتظار</CardTitle><CardDescription>عدد النماذج المعلّقة حسب أيامها</CardDescription></CardHeader>
           <CardContent className="space-y-3">
             {o.buckets.map((b, i) => (
               <div key={b.label} className="grid grid-cols-[7rem_1fr_2.5rem] items-center gap-3 text-sm">
