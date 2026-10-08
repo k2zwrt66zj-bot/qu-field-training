@@ -69,7 +69,7 @@ export function AppShell({ user, hiddenHrefs = [], children }: { user: { name: s
 
   const brand = (
     <div className="flex items-center gap-3 border-b border-white/10 pb-4">
-      <Image src={LOGO.emblem} alt="جامعة القصيم" width={44} height={44} className="rounded-lg bg-white p-0.5" />
+      <Image src={LOGO.emblemWhite} alt="جامعة القصيم" width={208} height={131} className="h-auto w-[52px] shrink-0" />
       <div className="leading-tight">
         <div className="text-sm font-bold text-white">{INSTITUTION.unit}</div>
         <div className="text-[11px] text-qu-teal-100">{INSTITUTION.university}</div>

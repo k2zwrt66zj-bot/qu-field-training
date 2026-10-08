@@ -22,4 +22,5 @@ export const LOGO = {
   transparent: "/brand/qu-logo-transparent.png", // الشعار الكامل بلا خلفية (752×195) للخلفيات الفاتحة
   white: "/brand/qu-logo-white.png", // نسخة بيضاء بشبكة فيروزية (752×195) للخلفيات الكحلية
   emblem: "/brand/emblem-192.png", // الرمز الشبكي فقط (مربع)
+  emblemWhite: "/brand/emblem-white.png", // الرمز الشبكي بلا خلفية (208×131): فيروزي بمربع أبيض للخلفيات الكحلية
 } as const;
