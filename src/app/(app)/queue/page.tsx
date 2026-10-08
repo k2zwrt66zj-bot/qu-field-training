@@ -151,7 +151,7 @@ export default async function QueuePage({ searchParams }: { searchParams: Promis
   const maxBucket = Math.max(1, ...o.buckets.map((b) => b.count));
   return (
     <>
-      <PageHeader title="متابعة الاعتماد" description="أين تتأخر النماذج؟ ما ينتظر المشرفين المؤسسيين والأكاديميين، وأقدم المعلّق" />
+      <PageHeader title="متابعة الاعتماد" />
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="بانتظار المشرف المؤسسي" value={o.stats.awaitingField} icon={Inbox} />
         <StatCard label="بانتظار المشرف الأكاديمي" value={o.stats.awaitingAcademic} icon={Inbox} tone="teal" />
