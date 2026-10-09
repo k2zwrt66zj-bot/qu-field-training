@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { handler, parseBody, requireRole } from "@/lib/api";
+import { audit, clientIp, handler, parseBody, requireRole } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { assertPlacementAccess } from "@/server/access";
 
@@ -24,6 +24,7 @@ export const POST = handler(async (req: Request) => {
     const note = await prisma.supervisorNote.create({
       data: { placementId: body.placementId, authorId: user.id, content: body.content, isPrivate: body.isPrivate },
     });
+    await audit(user.id, "guidance.note", "SupervisorNote", note.id, { placementId: body.placementId }, clientIp(req));
     return NextResponse.json({ ok: true, note });
   }
   const task = await prisma.task.create({
@@ -35,5 +36,6 @@ export const POST = handler(async (req: Request) => {
       dueDate: body.dueDate ? new Date(`${body.dueDate}T00:00:00Z`) : undefined,
     },
   });
+  await audit(user.id, "guidance.task", "Task", task.id, { placementId: body.placementId }, clientIp(req));
   return NextResponse.json({ ok: true, task });
 });

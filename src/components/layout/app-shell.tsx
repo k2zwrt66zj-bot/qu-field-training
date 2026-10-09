@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 import type { Role } from "@prisma/client";
-import { Activity, Award, BookOpen, Building2, ChartPie, ClipboardCheck, FileText, House, Inbox, Info, KeyRound, LogOut, MapPin, Menu, PenLine, Settings, Users, UsersRound, X } from "lucide-react";
+import { Activity, Award, BookOpen, Building2, ChartPie, ClipboardCheck, FileText, House, Inbox, Info, KeyRound, LogOut, MapPin, Menu, PenLine, Settings, ShieldCheck, Users, UsersRound, X } from "lucide-react";
 import { COMMON_NAV, NAV } from "./nav";
 import { ROLE_LABELS, INSTITUTION } from "@/lib/labels";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,7 @@ import { LOGO } from "@/lib/brand";
 import { DEVELOPER_CREDIT } from "@/lib/developer";
 import { NavigationProgress } from "./navigation-progress";
 
-const ICONS = { home: House, "map-pin": MapPin, book: BookOpen, users: Users, pen: PenLine, activity: Activity, file: FileText, award: Award, chart: ChartPie, building: Building2, settings: Settings, inbox: Inbox, meeting: UsersRound, sheet: ClipboardCheck, info: Info, key: KeyRound } as const;
+const ICONS = { home: House, "map-pin": MapPin, book: BookOpen, users: Users, pen: PenLine, activity: Activity, file: FileText, award: Award, chart: ChartPie, building: Building2, settings: Settings, inbox: Inbox, meeting: UsersRound, sheet: ClipboardCheck, info: Info, key: KeyRound, shield: ShieldCheck } as const;
 
 export function AppShell({ user, hiddenHrefs = [], children }: { user: { name: string; role: Role }; hiddenHrefs?: string[]; children: React.ReactNode }) {
   const pathname = usePathname();
@@ -69,7 +69,7 @@ export function AppShell({ user, hiddenHrefs = [], children }: { user: { name: s
 
   const brand = (
     <div className="flex items-center gap-3 border-b border-white/10 pb-4">
-      <Image src={LOGO.emblemWhite} alt="جامعة القصيم" width={208} height={131} className="h-auto w-[52px] shrink-0" />
+      <Image src={LOGO.emblemWhite} alt="جامعة القصيم" width={208} height={131} priority className="h-auto w-[52px] shrink-0" />
       <div className="leading-tight">
         <div className="text-sm font-bold text-white">{INSTITUTION.unit}</div>
         <div className="text-[11px] text-qu-teal-100">{INSTITUTION.university}</div>
@@ -94,21 +94,27 @@ export function AppShell({ user, hiddenHrefs = [], children }: { user: { name: s
         </div>
       </aside>
 
-      {/* قائمة الجوال */}
-      {open && (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal>
-          <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <aside className="absolute inset-y-0 right-0 flex w-72 flex-col gap-4 bg-qu-navy-800 p-4">
-            <button className="self-start text-white" onClick={() => setOpen(false)} aria-label="إغلاق"><X /></button>
-            {brand}
-            {nav}
-            <div className="mt-auto space-y-3">
-              {common}
-              <p className="text-center text-[11px] text-white/50">{DEVELOPER_CREDIT}</p>
-            </div>
-          </aside>
-        </div>
-      )}
+      {/* قائمة الجوال — مُركَّبة دائماً وتنزلق بحركة سلسة (يُحمَّل الشعار مسبقاً فلا يتأخر عند الفتح) */}
+      <div className={cn("fixed inset-0 z-50 lg:hidden print:hidden", !open && "pointer-events-none")} role="dialog" aria-modal aria-hidden={!open}>
+        <div
+          className={cn("absolute inset-0 bg-black/40 transition-opacity duration-200", open ? "opacity-100" : "opacity-0")}
+          onClick={() => setOpen(false)}
+        />
+        <aside
+          className={cn(
+            "absolute inset-y-0 right-0 flex w-72 flex-col gap-4 overflow-y-auto bg-qu-navy-800 p-4 shadow-2xl transition-transform duration-200 ease-out will-change-transform motion-reduce:transition-none",
+            open ? "translate-x-0" : "translate-x-full"
+          )}
+        >
+          <button className="self-start text-white" onClick={() => setOpen(false)} aria-label="إغلاق"><X /></button>
+          {brand}
+          {nav}
+          <div className="mt-auto space-y-3">
+            {common}
+            <p className="text-center text-[11px] text-white/50">{DEVELOPER_CREDIT}</p>
+          </div>
+        </aside>
+      </div>
 
       <div className="flex min-w-0 flex-col">
         <header className="sticky top-0 z-40 flex h-16 print:hidden items-center gap-3 border-b bg-card/90 px-4 backdrop-blur">

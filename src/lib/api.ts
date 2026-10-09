@@ -45,6 +45,10 @@ export function handler<C = unknown>(fn: (req: Request, ctx: C) => Promise<Respo
         );
       }
       if (e instanceof Error && e.name === "StorageNotConfiguredError") return NextResponse.json({ error: e.message }, { status: 503 });
+      // تعارض تزامن (مثل تحضيرين في اللحظة نفسها): القيد الفريد يمنع التكرار — نعيده نزاعاً واضحاً لا خطأ خادم
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+        return NextResponse.json({ error: "العملية مكرّرة أو نُفّذت مسبقاً" }, { status: 409 });
+      }
       // قيمة فارغة لحقل مطلوب في قاعدة البيانات: خطأ إدخال (422) لا خطأ خادم
       if (e instanceof Prisma.PrismaClientValidationError || (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2011")) {
         console.warn("[422] Prisma validation:", e.message.split("\n").slice(-2).join(" "));

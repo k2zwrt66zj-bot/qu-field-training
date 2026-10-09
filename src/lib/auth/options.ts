@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { AUTH_COOKIES, SESSION_MAX_AGE, USE_SECURE_COOKIES, USER_RECHECK_SECONDS } from "./config";
 import { safeRelativePath } from "./redirect";
 import { LOCKED_ERROR, afterFailedLogin } from "./password-policy";
+import { ipClear, ipRecordFailure, ipThrottled } from "./ip-throttle";
 
 /** بصمة bcrypt وهمية: زمن الرد متقارب سواء وُجد البريد أم لا (لا يُستدل على الحسابات المسجلة) */
 const DUMMY_HASH = "$2a$10$CwTycUXWue0Thq9StjUM0uJ8.QfQ5jY8yBPK2s8nmFJ5Ob0n7xQ1W";
@@ -27,12 +28,16 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "البريد الجامعي",
       credentials: { email: { type: "email" }, password: { type: "password" } },
-      async authorize(raw) {
+      async authorize(raw, req) {
         const parsed = credentialsSchema.safeParse(raw);
         if (!parsed.success) return null;
+        const ip = (req?.headers?.["x-forwarded-for"]?.split(",")[0] ?? req?.headers?.["x-real-ip"])?.trim() || null;
+        // كبح «الرش» حسب IP (ثانوي)؛ المحاولة أثناء الكبح تُرفض كأي قفل مؤقت
+        if (ipThrottled(ip)) throw new Error(LOCKED_ERROR);
         const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
         if (!user || !user.isActive) {
           await bcrypt.compare(parsed.data.password, DUMMY_HASH);
+          ipRecordFailure(ip);
           return null;
         }
         const now = new Date();
@@ -40,6 +45,7 @@ export const authOptions: NextAuthOptions = {
         if (user.lockedUntil && user.lockedUntil > now) throw new Error(LOCKED_ERROR);
         const ok = await bcrypt.compare(parsed.data.password, user.passwordHash);
         if (!ok) {
+          ipRecordFailure(ip);
           const next = afterFailedLogin(user.failedLogins, now);
           await prisma.user.update({ where: { id: user.id }, data: next });
           if (next.lockedUntil) {
@@ -48,6 +54,7 @@ export const authOptions: NextAuthOptions = {
           }
           return null;
         }
+        ipClear(ip);
         await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: now, failedLogins: 0, lockedUntil: null } });
         return {
           id: user.id,

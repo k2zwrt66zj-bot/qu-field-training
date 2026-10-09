@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { ApiError, handler, parseBody, requireRole } from "@/lib/api";
+import { ApiError, audit, clientIp, handler, parseBody, requireRole } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 
 const CATEGORIES = ["MEDICAL", "ORPHAN_CARE", "ELDERLY_CARE", "DISABILITY_CARE", "SCHOOL", "CHARITY", "FAMILY_COUNSELING", "JUVENILE_CARE", "PRISON_CARE", "ADDICTION_RECOVERY", "RESEARCH_CENTER", "GOVERNMENT", "OTHER"] as const;
@@ -35,5 +35,6 @@ export const POST = handler(async (req: Request) => {
       data: body.preferences.map((p, i) => ({ ...p, studentId: student.id, termId: term.id, rank: i + 1 })),
     }),
   ]);
+  await audit(user.id, "preferences.save", "StudentProfile", student.id, { count: body.preferences.length }, clientIp(req));
   return NextResponse.json({ ok: true });
 });

@@ -43,6 +43,8 @@ export async function recordAttendance(input: AttendanceActionInput): Promise<At
   const placement = await getActivePlacementForStudent(input.userId, today);
   if (!placement) throw new ApiError(404, "لا يوجد تدريب ميداني فعّال لك اليوم");
   if (placement.section?.mode === "SIMULATION") throw new ApiError(422, "التدريب بالمحاكاة لا يتطلب تحضيراً جغرافياً (لا يوجد مقر تدريب فعلي)");
+  // لا تحضير قبل اعتماد مباشرة التدريب (توقيع المشرف المؤسسي ومدير المؤسسة ينقل الإسناد إلى «فعّال»)
+  if (placement.status === "ASSIGNED") throw new ApiError(422, "لا يمكن التحضير قبل اعتماد نموذج مباشرة التدريب من المشرف المؤسسي ومدير المؤسسة");
   if (!placement.workDays.includes(riyadhWeekday(now))) throw new ApiError(422, "اليوم ليس من أيام التدريب المعتمدة");
   // كشف اليوم الموقّع يُقفل التحضير والانصراف (استيراد متأخر لتفادي الاعتماد الدائري)
   await (await import("./attendance-sheets")).assertDayOpen([placement.id], today);
@@ -120,10 +122,6 @@ export async function recordAttendance(input: AttendanceActionInput): Promise<At
     // ربط الجهاز عند أول تحضير ناجح
     if (!user.deviceId && input.deviceId) {
       await tx.user.update({ where: { id: user.id }, data: { deviceId: input.deviceId } });
-    }
-    // أول تحضير = مباشرة التدريب
-    if (placement.status === "ASSIGNED") {
-      await tx.placement.update({ where: { id: placement.id }, data: { status: "ACTIVE" } });
     }
 
     if (input.type === "CHECK_IN") {

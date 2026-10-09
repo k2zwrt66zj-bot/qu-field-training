@@ -20,6 +20,24 @@ const DOCUMENT_ROUTES = [
   "/api/attendance-sheets/*/*/pdf",
 ];
 
+// سياسة أمان المحتوى: تمنع تضمين الموقع في إطار، وتحصر المصادر بالنطاق نفسه.
+// الصور تشمل data: وhttps: (خرائط OpenStreetMap/Esri)، والأنماط المضمّنة مسموحة (Tailwind/Leaflet
+// وصفحة الطباعة)، والنماذج والروابط الأساسية محصورة في النطاق نفسه.
+const CSP = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  "img-src 'self' data: blob: https:",
+  "style-src 'self' 'unsafe-inline'",
+  "script-src 'self' 'unsafe-inline'",
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "manifest-src 'self'",
+  "worker-src 'self'",
+].join("; ");
+
 const nextConfig: NextConfig = {
   serverExternalPackages: ["puppeteer-core", "@prisma/client", "bcryptjs"],
   outputFileTracingIncludes: Object.fromEntries(DOCUMENT_ROUTES.map((r) => [r, DOCUMENT_ASSETS])),
@@ -33,6 +51,7 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Frame-Options", value: "DENY" },
+          { key: "Content-Security-Policy", value: CSP },
           // HTTPS إلزامي في المتصفح لسنتين (يُتجاهل على http://localhost)
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
         ],

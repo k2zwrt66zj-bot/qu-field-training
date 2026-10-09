@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { ApiError, handler, parseBody, requireRole } from "@/lib/api";
+import { ApiError, audit, clientIp, handler, parseBody, requireRole } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 
 const schema = z
@@ -29,5 +29,6 @@ export const POST = handler(async (req: Request) => {
   const visit = await prisma.supervisionVisit.create({
     data: { ...body, visitDate: new Date(body.visitDate), supervisorId: placement.academicSupervisorId },
   });
+  await audit(user.id, "visit.create", "SupervisionVisit", visit.id, { placementId: body.placementId }, clientIp(req));
   return NextResponse.json({ ok: true, visit });
 });
