@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { PLACEMENT_STATUS_LABELS } from "@/lib/labels";
+import { AcademicEdit } from "@/components/supervisors/academic-edit";
 
 export const metadata: Metadata = { title: "المشرفون والمتدربون" };
 export const dynamic = "force-dynamic";
@@ -38,9 +39,8 @@ export default async function SupervisorsPage() {
 
   const [academics, fieldSups] = await Promise.all([
     prisma.academicSupervisorProfile.findMany({
-      where: { user: { isActive: true } },
-      include: { user: { select: { fullName: true, email: true, phone: true } }, placements: placementSelect(term.id) },
-      orderBy: { user: { fullName: "asc" } },
+      include: { user: { select: { fullName: true, email: true, phone: true, gender: true, isActive: true } }, placements: placementSelect(term.id) },
+      orderBy: [{ user: { isActive: "desc" } }, { user: { fullName: "asc" } }],
     }),
     prisma.fieldSupervisorProfile.findMany({
       where: { user: { isActive: true } },
@@ -91,14 +91,18 @@ export default async function SupervisorsPage() {
         </h2>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" data-academics>
           {academics.map((a) => (
-            <Card key={a.id} data-supervisor={a.user.email}>
+            <Card key={a.id} data-supervisor={a.user.email} className={a.user.isActive ? undefined : "opacity-70"}>
               <CardHeader className="space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <CardTitle className="flex items-center gap-2"><UserRound className="size-4 text-qu-teal-700" />{a.user.fullName}</CardTitle>
-                  <Badge variant={a.placements.length > a.maxStudents ? "destructive" : "default"}>{a.placements.length} / {a.maxStudents}</Badge>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {!a.user.isActive && <Badge variant="muted">معطل</Badge>}
+                    <Badge variant={a.placements.length > a.maxStudents ? "destructive" : "default"}>{a.placements.length} / {a.maxStudents}</Badge>
+                  </div>
                 </div>
                 {a.academicRank && <CardDescription>{a.academicRank}</CardDescription>}
                 {contact(a.user)}
+                <AcademicEdit sup={{ id: a.id, fullName: a.user.fullName, email: a.user.email, phone: a.user.phone, gender: a.user.gender, academicRank: a.academicRank, maxStudents: a.maxStudents, isActive: a.user.isActive }} />
               </CardHeader>
               <CardContent>{students(a.placements, true)}</CardContent>
             </Card>

@@ -51,6 +51,7 @@ const ACTION_LABELS: Record<string, string> = {
   "organization.delete": "حذف جهة تدريب",
   "field_supervisor.create": "إضافة مشرف مؤسسي",
   "field_supervisor.update": "تعديل بيانات مشرف مؤسسي",
+  "academic_supervisor.update": "تعديل بيانات مشرف أكاديمي",
   "placement.auto_assign": "توزيع تلقائي",
   "placement.transfer": "نقل الطالب إلى مقر تدريب آخر",
   "placement.section": "تعديل شعبة الطالب",
