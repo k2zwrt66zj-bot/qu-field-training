@@ -66,6 +66,7 @@ enum PlacementStatus {
   COMPLETED // أنهى التدريب
   WITHDRAWN // منسحب
   SUSPENDED // موقوف
+  TRANSFERRED // نُقل إلى مقر تدريب آخر (مؤرشف، غير قابل للتعديل)
 }
 
 enum LetterType {
@@ -213,6 +214,7 @@ model User {
   uploadedAttachments   Attachment[]
   formSignatures        FormSignature[] @relation("FormSignatureSigner")
   auditLogs             AuditLog[]
+  placementTransfers    PlacementTransfer[]
 
   @@index([role])
 }
@@ -235,6 +237,7 @@ model StudentProfile {
   user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   preferences TrainingPreference[]
   placements  Placement[]
+  transfers   PlacementTransfer[]
 
   @@index([major, gender])
 }
@@ -402,13 +405,42 @@ model Placement {
   forms             FieldForm[]
   meetingAttendance MeetingAttendance[]
   secretaryOf       SupervisionMeeting[] @relation("MeetingSecretary")
+  transferOut       PlacementTransfer?   @relation("TransferFrom")
+  transferIn        PlacementTransfer?   @relation("TransferTo")
 
-  @@unique([studentId, termId])
+  // قيد «إسناد فعّال واحد لكل طالب في الفصل» يُطبَّق كفهرس جزئي يستثني المؤرشف
+  // (TRANSFERRED / WITHDRAWN) في المهاجرة 0006 — إذ لا يدعم Prisma الفهارس الجزئية في المخطط.
   @@index([sectionId])
   @@index([organizationId])
   @@index([fieldSupervisorId])
   @@index([academicSupervisorId])
   @@index([status])
+}
+
+/// سجل نقل الطالب بين مقرّي تدريب (إعادة التوزيع): يحفظ المقر السابق والجديد وسبب النقل ومنفّذه
+model PlacementTransfer {
+  id                    String   @id @default(cuid())
+  studentId             String
+  fromPlacementId       String   @unique // الإسناد القديم (أصبح TRANSFERRED) — نقلٌ واحد لكل إسناد
+  toPlacementId         String   @unique // الإسناد الجديد
+  fromOrganizationId    String
+  toOrganizationId      String
+  fromFieldSupervisorId String?
+  toFieldSupervisorId   String?
+  reason                String // سبب النقل
+  carryOverHours        Boolean // هل احتُسبت ساعات المقر القديم ضمن المتطلب؟
+  carriedMinutes        Int      @default(0) // الدقائق المحتسبة من المقر القديم (0 إذا لم تُحتسب)
+  effectiveDate         DateTime @db.Date // تاريخ سريان النقل
+  transferredById       String // منفّذ النقل (رئيس الوحدة / الإدارة)
+  createdAt             DateTime @default(now())
+
+  student       StudentProfile @relation(fields: [studentId], references: [id])
+  fromPlacement Placement      @relation("TransferFrom", fields: [fromPlacementId], references: [id])
+  toPlacement   Placement      @relation("TransferTo", fields: [toPlacementId], references: [id])
+  transferredBy User           @relation(fields: [transferredById], references: [id])
+
+  @@index([studentId])
+  @@index([createdAt])
 }
 
 model Letter {

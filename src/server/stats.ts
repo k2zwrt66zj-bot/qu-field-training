@@ -107,7 +107,7 @@ export async function getTrainingHeadStats(termId: string) {
 export async function getExecutiveStats(termId: string) {
   const [placements, grades, orgs, fieldEvals, attendance] = await Promise.all([
     prisma.placement.findMany({
-      where: { termId, status: { notIn: ["DRAFT", "WITHDRAWN"] } },
+      where: { termId, status: { notIn: ["DRAFT", "WITHDRAWN", "TRANSFERRED"] } },
       select: {
         id: true,
         status: true,

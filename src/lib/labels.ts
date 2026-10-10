@@ -46,6 +46,7 @@ export const PLACEMENT_STATUS_LABELS: Record<PlacementStatus, string> = {
   COMPLETED: "مكتمل",
   WITHDRAWN: "منسحب",
   SUSPENDED: "موقوف",
+  TRANSFERRED: "منقول (مؤرشف)",
 };
 
 export const ATTENDANCE_STATUS_LABELS: Record<AttendanceStatus, string> = {

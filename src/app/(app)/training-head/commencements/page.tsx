@@ -43,7 +43,7 @@ export default async function CommencementsPage({ searchParams }: { searchParams
   const filter: Filter = FILTERS.some((f) => f.key === raw) ? (raw as Filter) : "all";
 
   const placements = await prisma.placement.findMany({
-    where: { termId: term.id, status: { notIn: ["WITHDRAWN", "DRAFT"] }, OR: [{ sectionId: null }, { section: { mode: "FIELD" } }] },
+    where: { termId: term.id, status: { notIn: ["WITHDRAWN", "DRAFT", "TRANSFERRED"] }, OR: [{ sectionId: null }, { section: { mode: "FIELD" } }] },
     select: {
       id: true,
       status: true,

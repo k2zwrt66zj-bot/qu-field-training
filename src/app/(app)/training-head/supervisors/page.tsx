@@ -15,11 +15,11 @@ export const metadata: Metadata = { title: "المشرفون والمتدربو�
 export const dynamic = "force-dynamic";
 
 const STATUS_VARIANT: Record<PlacementStatus, "success" | "warning" | "muted" | "destructive" | "teal"> = {
-  DRAFT: "muted", ASSIGNED: "warning", ACTIVE: "success", COMPLETED: "teal", WITHDRAWN: "destructive", SUSPENDED: "destructive",
+  DRAFT: "muted", ASSIGNED: "warning", ACTIVE: "success", COMPLETED: "teal", WITHDRAWN: "destructive", SUSPENDED: "destructive", TRANSFERRED: "muted",
 };
 
 const placementSelect = (termId: string) => ({
-  where: { termId, status: { notIn: ["WITHDRAWN", "DRAFT"] as PlacementStatus[] } },
+  where: { termId, status: { notIn: ["WITHDRAWN", "DRAFT", "TRANSFERRED"] as PlacementStatus[] } },
   select: {
     id: true,
     status: true,

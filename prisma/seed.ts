@@ -32,6 +32,7 @@ async function main() {
     prisma.logbook.deleteMany(), prisma.fieldReport.deleteMany(), prisma.signature.deleteMany(),
     prisma.task.deleteMany(), prisma.supervisorNote.deleteMany(), prisma.supervisionVisit.deleteMany(),
     prisma.attendanceAttempt.deleteMany(), prisma.attendanceRecord.deleteMany(), prisma.letter.deleteMany(),
+    prisma.placementTransfer.deleteMany(),
     prisma.placement.deleteMany(), prisma.trainingPreference.deleteMany(), prisma.fieldSupervisorProfile.deleteMany(),
     prisma.academicSupervisorProfile.deleteMany(), prisma.studentProfile.deleteMany(), prisma.organization.deleteMany(),
     prisma.academicTerm.deleteMany(), prisma.user.deleteMany(),
