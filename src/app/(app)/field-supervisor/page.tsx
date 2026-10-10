@@ -3,6 +3,7 @@ import { requirePageRole } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/layout/page-header";
 import { AttendanceApprovals, type PendingRecord } from "@/components/supervisor/attendance-approvals";
+import { ManualAttendanceOverride } from "@/components/supervisor/manual-override";
 import { GuidanceForm } from "@/components/supervisor/guidance-form";
 import { ArrivalSmsSettings } from "@/components/supervisor/arrival-sms-settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,9 +68,16 @@ export default async function FieldSupervisorPage() {
       <PageHeader title="المتدربون والحضور" description={profile?.organization.name} />
 
       <Card>
-        <CardHeader>
-          <CardTitle>اعتماد الحضور اليومي</CardTitle>
-          <CardDescription>راجع سجلات التحضير الجغرافي واعتمدها؛ الساعات لا تُحتسب للطالب إلا بعد اعتمادك</CardDescription>
+        <CardHeader className="flex-row flex-wrap items-start justify-between gap-2 space-y-0">
+          <div className="space-y-1.5">
+            <CardTitle>اعتماد الحضور اليومي</CardTitle>
+            <CardDescription>راجع سجلات التحضير الجغرافي واعتمدها؛ الساعات لا تُحتسب للطالب إلا بعد اعتمادك</CardDescription>
+          </div>
+          <ManualAttendanceOverride
+            trainees={placements
+              .filter((p) => p.status === "ACTIVE")
+              .map((p) => ({ placementId: p.id, name: p.student.user.fullName, universityId: p.student.universityId }))}
+          />
         </CardHeader>
         <CardContent className="p-0 pb-2">
           <AttendanceApprovals records={rows} flagLabels={RISK_FLAG_LABELS} />

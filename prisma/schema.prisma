@@ -197,6 +197,7 @@ model User {
   academicSupervisor AcademicSupervisorProfile?
 
   approvedAttendance AttendanceRecord[] @relation("AttendanceApprover")
+  overriddenAttendance AttendanceRecord[] @relation("AttendanceOverrider")
   evaluations        Evaluation[]       @relation("Evaluator")
   signatures         Signature[]
   assignedTasks      Task[]             @relation("TaskAssigner")
@@ -496,6 +497,11 @@ model AttendanceRecord {
   riskFlags    String[]
   excuseNote   String?
 
+  // تحضير يدوي استثنائي من المشرف المؤسسي (تعذّر جوال/إنترنت الطالب)
+  isManualOverride Boolean @default(false)
+  overrideReason   String? // سبب التجاوز (إلزامي عند التحضير اليدوي)
+  overriddenById   String? // المشرف المؤسسي الذي سجّل الحضور يدوياً
+
   // كشف الحضور والانصراف اليومي للمؤسسة الذي وقّعه المشرف المؤسسي
   sheetId String?
 
@@ -503,8 +509,9 @@ model AttendanceRecord {
   updatedAt DateTime @updatedAt
 
   placement  Placement        @relation(fields: [placementId], references: [id], onDelete: Cascade)
-  approvedBy User?            @relation("AttendanceApprover", fields: [approvedById], references: [id])
-  sheet      AttendanceSheet? @relation(fields: [sheetId], references: [id], onDelete: SetNull)
+  approvedBy   User?            @relation("AttendanceApprover", fields: [approvedById], references: [id])
+  overriddenBy User?            @relation("AttendanceOverrider", fields: [overriddenById], references: [id])
+  sheet        AttendanceSheet? @relation(fields: [sheetId], references: [id], onDelete: SetNull)
 
   @@unique([placementId, date])
   @@index([date])

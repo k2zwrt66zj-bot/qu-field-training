@@ -1,6 +1,6 @@
 import type { AttemptType, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { ApiError } from "@/lib/api";
+import { ApiError, type SessionUser } from "@/lib/api";
 import { checkGeofence } from "@/lib/geo/geofence";
 import { assessLocationRisk, RISK_FLAG_LABELS, type PositionSample, type RiskFlag } from "@/lib/geo/anti-spoof";
 import { hhmmToMinutes, riyadhDateOnly, riyadhMinutesOfDay, riyadhWeekday } from "@/lib/time";
@@ -203,3 +203,67 @@ export async function recomputeApprovedMinutes(placementId: string, tx: Prisma.T
 
 /** شرط Prisma: الإسنادات الميدانية فقط (تستبعد المحاكاة من الحضور والغياب وإحصاءاتهما) */
 export const FIELD_MODE_ONLY = { OR: [{ sectionId: null }, { section: { mode: "FIELD" as const } }] };
+
+export interface ManualOverrideInput {
+  placementId: string;
+  date: string; // YYYY-MM-DD
+  reason: string;
+}
+
+export interface ManualOverrideResult {
+  recordId: string;
+  studentName: string;
+  workedMinutes: number;
+}
+
+/**
+ * التحضير اليدوي الاستثنائي من المشرف المؤسسي (تعذّر جوال/إنترنت الطالب).
+ * يسجّل حضوراً معتمداً بسبب إلزامي، ويُعلَّم isManualOverride، ويُحتسب ضمن ساعات الطالب.
+ * الصلاحية: المشرف المؤسسي المسند لهذا الطالب حصراً.
+ */
+export async function recordManualOverride(user: SessionUser, input: ManualOverrideInput): Promise<ManualOverrideResult> {
+  const reason = input.reason?.trim() ?? "";
+  if (reason.length < 5) throw new ApiError(422, "سبب التجاوز إلزامي (5 أحرف على الأقل)");
+  if (reason.length > 500) throw new ApiError(422, "سبب التجاوز طويل جداً");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) throw new ApiError(422, "تاريخ غير صحيح");
+
+  // حصراً المشرف المؤسسي المسند لهذا الطالب
+  const placement = await prisma.placement.findFirst({
+    where: { id: input.placementId, fieldSupervisor: { userId: user.id } },
+    include: { organization: true, section: true, student: { include: { user: { select: { fullName: true } } } } },
+  });
+  if (!placement) throw new ApiError(404, "الطالب غير مسند إليك");
+  if ((placement.section?.mode ?? "FIELD") !== "FIELD") throw new ApiError(422, "التدريب بالمحاكاة لا يتطلب تحضيراً");
+  if (placement.status !== "ACTIVE") throw new ApiError(422, "لا يمكن التحضير قبل اعتماد مباشرة التدريب");
+
+  const date = new Date(`${input.date}T00:00:00.000Z`);
+  const today = riyadhDateOnly();
+  if (date.getTime() > today.getTime()) throw new ApiError(422, "لا يمكن التحضير اليدوي ليوم قادم");
+  if (date < placement.startDate || date > placement.endDate) throw new ApiError(422, "التاريخ خارج مدة التدريب");
+  if (!placement.workDays.includes(date.getUTCDay())) throw new ApiError(422, "اليوم ليس من أيام التدريب المعتمدة");
+  // اليوم المُقفل بكشف موقّع لا يُعدَّل
+  await (await import("./attendance-sheets")).assertDayOpen([placement.id], date);
+
+  const existing = await prisma.attendanceRecord.findUnique({ where: { placementId_date: { placementId: placement.id, date } } });
+  if (existing?.checkInAt) throw new ApiError(409, "سجّل الطالب حضوره الجغرافي لهذا اليوم مسبقاً");
+
+  // مدة العمل = دوام الجهة الكامل (دقائق)
+  const minutes = Math.max(0, Math.min(600, hhmmToMinutes(placement.organization.workEndTime) - hhmmToMinutes(placement.organization.workStartTime)));
+  const now = new Date();
+  const data = {
+    status: "PRESENT" as const,
+    approvalStatus: "APPROVED" as const,
+    approvedById: user.id,
+    approvedAt: now,
+    workedMinutes: minutes,
+    isManualOverride: true,
+    overrideReason: reason,
+    overriddenById: user.id,
+    supervisorNote: reason,
+  };
+  const record = existing
+    ? await prisma.attendanceRecord.update({ where: { id: existing.id }, data })
+    : await prisma.attendanceRecord.create({ data: { ...data, placementId: placement.id, date } });
+  await recomputeApprovedMinutes(placement.id);
+  return { recordId: record.id, studentName: placement.student.user.fullName, workedMinutes: minutes };
+}
