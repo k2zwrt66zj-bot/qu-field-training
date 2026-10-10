@@ -40,7 +40,7 @@ export default async function OrganizationsPage() {
     isApproved: o.isApproved,
     notes: o.notes ?? "",
     trainees: o._count.placements,
-    supervisors: o.supervisors.map((s) => ({ id: s.id, fullName: s.user.fullName, email: s.user.email, phone: s.user.phone, isActive: s.user.isActive })),
+    supervisors: o.supervisors.map((s) => ({ id: s.id, fullName: s.user.fullName, email: s.user.email, phone: s.user.phone, gender: s.user.gender, jobTitle: s.jobTitle, isActive: s.user.isActive })),
   }));
 
   return (

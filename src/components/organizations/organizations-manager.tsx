@@ -20,7 +20,7 @@ const OverviewMap = dynamic(() => import("./organizations-overview-map"), {
 export interface OrgRow extends OrgFormValues {
   id: string;
   trainees: number;
-  supervisors: { id: string; fullName: string; email: string; phone: string | null; isActive: boolean }[];
+  supervisors: { id: string; fullName: string; email: string; phone: string | null; gender: "MALE" | "FEMALE" | null; jobTitle: string | null; isActive: boolean }[];
 }
 
 export function OrganizationsManager({ orgs }: { orgs: OrgRow[] }) {
@@ -150,12 +150,7 @@ function SupervisorsPanel({ org }: { org: OrgRow }) {
     <div className="space-y-5">
       <div className="space-y-2">
         {org.supervisors.length === 0 && <p className="text-sm text-muted-foreground">لا يوجد مشرفون لهذه الجهة بعد.</p>}
-        {org.supervisors.map((s) => (
-          <div key={s.id} className="flex items-center justify-between rounded-lg border p-3 text-sm">
-            <div><div className="font-medium">{s.fullName}</div><div dir="ltr" className="text-right text-xs text-muted-foreground">{s.email}{s.phone ? ` · ${s.phone}` : ""}</div></div>
-            <Badge variant={s.isActive ? "success" : "muted"}>{s.isActive ? "نشط" : "معطل"}</Badge>
-          </div>
-        ))}
+        {org.supervisors.map((s) => <SupervisorRow key={s.id} orgId={org.id} sup={s} />)}
       </div>
       <form
         className="grid gap-3 rounded-lg bg-muted/50 p-4 md:grid-cols-2"
@@ -196,5 +191,73 @@ function SupervisorsPanel({ org }: { org: OrgRow }) {
       </form>
       <p className="flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="size-3" /> يعتمد المشرف الحضور ويقيّم الطلاب المسندين إليه في هذه الجهة فقط.</p>
     </div>
+  );
+}
+
+/** صف مشرف مؤسسي: عرض موجز مع تعديل مباشر لبياناته */
+function SupervisorRow({ orgId, sup }: { orgId: string; sup: OrgRow["supervisors"][number] }) {
+  const router = useRouter();
+  const [editing, setEditing] = useState(false);
+  const [pending, start] = useTransition();
+  const [err, setErr] = useState<string | null>(null);
+
+  const save = (fd: FormData, isActive: boolean) =>
+    start(async () => {
+      setErr(null);
+      const res = await fetch(`/api/organizations/${orgId}/supervisors/${sup.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullName: fd.get("fullName"), email: fd.get("email"), phone: fd.get("phone"), gender: fd.get("gender"), jobTitle: fd.get("jobTitle"), isActive }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) return setErr(json.details?.[0]?.message ?? json.error ?? "تعذّر الحفظ");
+      setEditing(false);
+      router.refresh();
+    });
+
+  if (!editing) {
+    return (
+      <div className="flex items-center justify-between gap-2 rounded-lg border p-3 text-sm">
+        <div className="min-w-0">
+          <div className="font-medium">{sup.fullName}{sup.jobTitle && <span className="font-normal text-muted-foreground"> · {sup.jobTitle}</span>}</div>
+          <div dir="ltr" className="truncate text-right text-xs text-muted-foreground">{sup.email}{sup.phone ? ` · ${sup.phone}` : ""}</div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <Badge variant={sup.isActive ? "success" : "muted"}>{sup.isActive ? "نشط" : "معطل"}</Badge>
+          <Button variant="outline" size="sm" className="h-8" onClick={() => { setErr(null); setEditing(true); }}><Pencil className="size-3.5" /> تعديل</Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      className="grid gap-3 rounded-lg border border-qu-teal-400/50 bg-qu-teal-500/5 p-4 md:grid-cols-2"
+      onSubmit={(e) => { e.preventDefault(); save(new FormData(e.currentTarget), sup.isActive); }}
+    >
+      <div className="space-y-1"><Label htmlFor={`e-name-${sup.id}`}>الاسم</Label><Input id={`e-name-${sup.id}`} name="fullName" defaultValue={sup.fullName} required minLength={3} /></div>
+      <div className="space-y-1"><Label htmlFor={`e-email-${sup.id}`}>البريد الإلكتروني</Label><Input id={`e-email-${sup.id}`} name="email" type="email" dir="ltr" defaultValue={sup.email} required /></div>
+      <div className="space-y-1"><Label htmlFor={`e-phone-${sup.id}`}>الجوال</Label><Input id={`e-phone-${sup.id}`} name="phone" dir="ltr" defaultValue={sup.phone ?? ""} /></div>
+      <div className="space-y-1">
+        <Label htmlFor={`e-gender-${sup.id}`}>الجنس</Label>
+        <Select id={`e-gender-${sup.id}`} name="gender" defaultValue={sup.gender ?? "MALE"}><option value="MALE">ذكر</option><option value="FEMALE">أنثى</option></Select>
+      </div>
+      <div className="space-y-1 md:col-span-2"><Label htmlFor={`e-title-${sup.id}`}>المسمى الوظيفي</Label><Input id={`e-title-${sup.id}`} name="jobTitle" defaultValue={sup.jobTitle ?? ""} placeholder="أخصائي اجتماعي" /></div>
+      {err && <p role="alert" className="rounded-md bg-red-50 p-2 text-sm text-red-700 md:col-span-2 dark:bg-red-950/40 dark:text-red-300">{err}</p>}
+      <div className="flex flex-wrap items-center gap-2 md:col-span-2">
+        <Button type="submit" disabled={pending} size="sm">حفظ التعديلات</Button>
+        <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => setEditing(false)}>إلغاء</Button>
+        <Button
+          type="button"
+          variant={sup.isActive ? "outline" : "teal"}
+          size="sm"
+          disabled={pending}
+          className="ms-auto"
+          onClick={(e) => save(new FormData((e.currentTarget.closest("form") as HTMLFormElement)), !sup.isActive)}
+        >
+          {sup.isActive ? "تعطيل الحساب" : "تفعيل الحساب"}
+        </Button>
+      </div>
+    </form>
   );
 }
