@@ -87,7 +87,7 @@ async function main() {
       startDate: today < term.startDate ? term.startDate : today,
       endDate: term.endDate,
       requiredHours: term.requiredHours,
-      workDays: [0, 1, 2, 3, 4],
+      workDays: [0, 1, 2, 3, 4, 5, 6], // كل أيام الأسبوع (يتيح التحضير في أي يوم)
       status: "ASSIGNED",
     },
   });
