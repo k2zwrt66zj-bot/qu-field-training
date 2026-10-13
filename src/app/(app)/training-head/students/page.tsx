@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getActiveTerm } from "@/server/stats";
 import { PageHeader } from "@/components/layout/page-header";
 import { AddStudent } from "@/components/students/add-student";
+import { ImportStudents } from "@/components/students/import-students";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
@@ -35,7 +36,7 @@ export default async function StudentsPage() {
       <PageHeader
         title="الطلاب"
         description={`${students.length.toLocaleString("ar-SA")} طالباً/ة${term ? ` · ${unplaced.toLocaleString("ar-SA")} غير موزّع` : ""}`}
-        actions={<AddStudent />}
+        actions={<><ImportStudents /><AddStudent /></>}
       />
 
       <Card>
