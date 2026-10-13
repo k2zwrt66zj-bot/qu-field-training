@@ -23,6 +23,8 @@ const DOCUMENT_ROUTES = [
 // سياسة أمان المحتوى: تمنع تضمين الموقع في إطار، وتحصر المصادر بالنطاق نفسه.
 // الصور تشمل data: وhttps: (خرائط OpenStreetMap/Esri)، والأنماط المضمّنة مسموحة (Tailwind/Leaflet
 // وصفحة الطباعة)، والنماذج والروابط الأساسية محصورة في النطاق نفسه.
+// وضع التطوير يحتاج 'unsafe-eval' لآلية التحديث الساخن (HMR) في Next؛ الإنتاج يبقى صارماً بلا eval.
+const isDev = process.env.NODE_ENV !== "production";
 const CSP = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -31,9 +33,9 @@ const CSP = [
   "form-action 'self'",
   "img-src 'self' data: blob: https:",
   "style-src 'self' 'unsafe-inline'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "font-src 'self' data:",
-  "connect-src 'self'",
+  isDev ? "connect-src 'self' ws:" : "connect-src 'self'",
   "manifest-src 'self'",
   "worker-src 'self'",
 ].join("; ");
