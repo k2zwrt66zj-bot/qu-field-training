@@ -50,6 +50,7 @@ const ACTION_LABELS: Record<string, string> = {
   "meeting.delete": "حذف محضر اجتماع",
   "organization.create": "إضافة جهة تدريب",
   "organization.delete": "حذف جهة تدريب",
+  "student.create": "إضافة طالب/ة",
   "field_supervisor.create": "إضافة مشرف مؤسسي",
   "field_supervisor.update": "تعديل بيانات مشرف مؤسسي",
   "academic_supervisor.update": "تعديل بيانات مشرف أكاديمي",
