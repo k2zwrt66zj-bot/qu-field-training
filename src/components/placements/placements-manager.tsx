@@ -1,13 +1,15 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeftRight, FileText, History, LoaderCircle, Shuffle, WandSparkles } from "lucide-react";
+import { ArrowLeftRight, CalendarDays, FileText, History, LoaderCircle, Shuffle, WandSparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
+import { WEEKDAYS_AR, formatWorkDays } from "@/lib/weekdays";
+import { cn } from "@/lib/utils";
 
 export interface PlacementRow {
   id: string;
@@ -27,6 +29,8 @@ export interface PlacementRow {
   sectionId: string | null;
   canTransfer: boolean;
   approvedHours: number;
+  workDays: number[];
+  canEditDays: boolean;
 }
 
 export interface SectionOption { id: string; label: string; mode: "FIELD" | "SIMULATION" }
@@ -73,7 +77,22 @@ export function PlacementsManager({ termId, rows, unplacedCount, sections, orgs,
   const [preview, setPreview] = useState<AssignPreview | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [transferRow, setTransferRow] = useState<PlacementRow | null>(null);
+  const [daysOpen, setDaysOpen] = useState(false);
   const [pending, start] = useTransition();
+
+  /** تحديد يوم/أيام التدريب لطالب أو أكثر */
+  const setWorkDays = (placementIds: string[], workDays: number[], after?: () => void) =>
+    start(async () => {
+      const res = await fetch("/api/placements/work-days", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ placementIds, workDays }) });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) return setMsg(json.details?.[0]?.message ?? json.error ?? "تعذّر الحفظ");
+      setMsg(
+        `يوم التدريب «${formatWorkDays(workDays)}» لـ ${json.updated} طالب/ة` +
+          (json.skipped ? ` — تُجوِّز ${json.skipped} (إسناد منتهٍ أو منقول)` : ""),
+      );
+      after?.();
+      router.refresh();
+    });
 
   const toggle = (id: string) => setSelected((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const allSelected = rows.length > 0 && selected.size === rows.length;
@@ -151,6 +170,9 @@ export function PlacementsManager({ termId, rows, unplacedCount, sections, orgs,
             <Button variant="teal" disabled={pending || selected.size === 0} onClick={issue}>
               <FileText /> إصدار ({selected.size})
             </Button>
+            <Button variant="outline" disabled={pending || selected.size === 0} onClick={() => { setMsg(null); setDaysOpen(true); }}>
+              <CalendarDays /> يوم التدريب ({selected.size})
+            </Button>
           </div>
         </CardHeader>
         {msg && <p className="mx-5 mb-3 rounded-md bg-accent p-2 text-sm">{msg}</p>}
@@ -159,7 +181,7 @@ export function PlacementsManager({ termId, rows, unplacedCount, sections, orgs,
             <THead>
               <TR>
                 <TH className="w-8"><input type="checkbox" aria-label="تحديد الكل" checked={allSelected} onChange={() => setSelected(allSelected ? new Set() : new Set(rows.map((r) => r.id)))} /></TH>
-                <TH>الطالب/ة</TH><TH>التخصص</TH><TH>الشعبة</TH><TH>جهة التدريب</TH><TH>المشرف المؤسسي</TH><TH>المشرف الأكاديمي</TH><TH>الحالة</TH><TH>الخطابات</TH><TH></TH>
+                <TH>الطالب/ة</TH><TH>التخصص</TH><TH>الشعبة</TH><TH>يوم التدريب</TH><TH>جهة التدريب</TH><TH>المشرف المؤسسي</TH><TH>المشرف الأكاديمي</TH><TH>الحالة</TH><TH>الخطابات</TH><TH></TH>
               </TR>
             </THead>
             <TBody>
@@ -185,6 +207,23 @@ export function PlacementsManager({ termId, rows, unplacedCount, sections, orgs,
                       <option value="">— بلا شعبة (ميداني) —</option>
                       {sections.map((s) => <option key={s.id} value={s.id}>{s.label}{s.mode === "SIMULATION" ? " · محاكاة" : ""}</option>)}
                     </select>
+                  </TD>
+                  <TD>
+                    {r.canEditDays ? (
+                      <select
+                        aria-label={`يوم تدريب ${r.student}`}
+                        data-workdays={r.universityId}
+                        className="h-8 max-w-36 rounded-md border border-input bg-card px-2 text-xs"
+                        value={r.workDays.length === 1 ? String(r.workDays[0]) : "multi"}
+                        disabled={pending}
+                        onChange={(e) => setWorkDays([r.id], [Number(e.target.value)])}
+                      >
+                        {r.workDays.length !== 1 && <option value="multi" disabled>{formatWorkDays(r.workDays)}</option>}
+                        {WEEKDAYS_AR.map((d, i) => <option key={i} value={i}>{d}</option>)}
+                      </select>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">{formatWorkDays(r.workDays)}</span>
+                    )}
                   </TD>
                   <TD><div>{r.organization}</div><div className="text-xs text-muted-foreground">{r.category}</div></TD>
                   <TD className="text-xs">{r.fieldSupervisor ?? <Badge variant="warning">غير محدد</Badge>}</TD>
@@ -244,6 +283,13 @@ export function PlacementsManager({ termId, rows, unplacedCount, sections, orgs,
         </Card>
       )}
 
+      <WorkDaysDialog
+        open={daysOpen}
+        count={selected.size}
+        pending={pending}
+        onClose={() => setDaysOpen(false)}
+        onSave={(days) => setWorkDays([...selected], days, () => { setDaysOpen(false); setSelected(new Set()); })}
+      />
       <TransferDialog row={transferRow} orgs={orgs} onClose={() => setTransferRow(null)} onDone={(m) => { setTransferRow(null); setMsg(m); router.refresh(); }} />
     </div>
   );
@@ -343,6 +389,45 @@ function TransferDialog({ row, orgs, onClose, onDone }: { row: PlacementRow | nu
           </div>
         </div>
       )}
+    </Dialog>
+  );
+}
+
+/** نافذة تحديد يوم/أيام التدريب للطلاب المحددين */
+function WorkDaysDialog({ open, count, pending, onClose, onSave }: { open: boolean; count: number; pending: boolean; onClose: () => void; onSave: (days: number[]) => void }) {
+  const [days, setDays] = useState<number[]>([]);
+  return (
+    <Dialog open={open} onClose={onClose} title={`يوم التدريب للطلاب المحددين (${count})`} className="max-w-lg">
+      <div className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          اختر اليوم الذي يحضر فيه هؤلاء الطلاب لجهة التدريب. يُسمح بالتحضير ويُسجَّل الغياب الآلي في هذا اليوم فقط.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {WEEKDAYS_AR.map((name, d) => {
+            const on = days.includes(d);
+            return (
+              <button
+                key={d}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setDays((s) => (on ? s.filter((x) => x !== d) : [...s, d].sort((a, b) => a - b)))}
+                className={cn(
+                  "rounded-lg border px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  on ? "border-qu-navy-700 bg-qu-navy-700 text-white" : "bg-background hover:bg-muted",
+                )}
+              >
+                {name}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-xs text-muted-foreground">{days.length ? formatWorkDays(days) : "لم يُحدَّد يوم"}</span>
+          <Button disabled={pending || days.length === 0} onClick={() => onSave(days)}>
+            {pending ? <LoaderCircle className="animate-spin" /> : <CalendarDays />} حفظ
+          </Button>
+        </div>
+      </div>
     </Dialog>
   );
 }

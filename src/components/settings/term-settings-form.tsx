@@ -5,6 +5,7 @@ import { LoaderCircle, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { WEEKDAYS_AR as WEEKDAYS } from "@/lib/weekdays";
 
 export interface TermSettings {
   fieldWeight: number;
@@ -19,8 +20,6 @@ export interface TermSettings {
 
 type NumericKey = Exclude<keyof TermSettings, "workDays">;
 
-// أيام الأسبوع بترتيب التقويم المحلي (0=الأحد ... 6=السبت)
-const WEEKDAYS = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 
 const FIELDS: { key: NumericKey; label: string; hint?: string; group: "w" | "a" }[] = [
   { key: "fieldWeight", label: "وزن المشرف المؤسسي %", group: "w" },
@@ -81,9 +80,9 @@ export function TermSettingsForm({ termId, initial, gradesApproved }: { termId: 
         <div className="grid gap-3 sm:grid-cols-3">{FIELDS.filter((f) => f.group === "a").map(input)}</div>
       </div>
       <fieldset>
-        <legend className="mb-1 text-sm font-semibold">أيام التدريب الأسبوعية</legend>
+        <legend className="mb-1 text-sm font-semibold">يوم التدريب الافتراضي للطلاب الجدد</legend>
         <p className="mb-2 text-[11px] text-muted-foreground">
-          الأيام التي يحضر فيها الطالب لجهة التدريب. يُسمح بالتحضير ويُسجَّل الغياب الآلي فيها فقط، وتسري على جميع الإسنادات الجارية.
+          يُعطى للطلاب عند التوزيع الآلي فقط ولا يغيّر أيام الطلاب الحاليين. يوم كل طالب يُحدَّد ويُعدَّل من صفحة «التوزيع والخطابات».
         </p>
         <div className="flex flex-wrap gap-2">
           {WEEKDAYS.map((name, d) => {
@@ -107,7 +106,7 @@ export function TermSettingsForm({ termId, initial, gradesApproved }: { termId: 
           })}
         </div>
         <p className="mt-1.5 text-xs tabular-nums text-muted-foreground">
-          {v.workDays.length === 0 ? <span className="text-red-700">اختر يوماً واحداً على الأقل</span> : `${v.workDays.length} يوم تدريب أسبوعياً`}
+          {v.workDays.length === 0 ? <span className="text-red-700">اختر يوماً واحداً على الأقل</span> : `${v.workDays.length} يوم أسبوعياً`}
         </p>
       </fieldset>
       <div className="flex items-center gap-3">

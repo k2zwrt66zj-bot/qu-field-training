@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { APPROVAL_LABELS, ATTENDANCE_STATUS_LABELS } from "@/lib/labels";
 import { formatShortDateAr, formatTimeAr } from "@/lib/time";
+import { formatWorkDays } from "@/lib/weekdays";
 
 export const metadata = { title: "التحضير الميداني" };
 export const dynamic = "force-dynamic";
@@ -15,7 +16,7 @@ export const dynamic = "force-dynamic";
 export default async function StudentAttendancePage() {
   const user = await requirePageRole("STUDENT");
   // التدريب بالمحاكاة: لا تحضير جغرافي ولا سجل حضور (قرار القسم)
-  const latest = await prisma.placement.findFirst({ where: { student: { userId: user.id } }, orderBy: { startDate: "desc" }, select: { section: { select: { mode: true } } } });
+  const latest = await prisma.placement.findFirst({ where: { student: { userId: user.id } }, orderBy: { startDate: "desc" }, select: { workDays: true, section: { select: { mode: true } } } });
   if (latest?.section?.mode === "SIMULATION") redirect("/portfolio");
   const records = await prisma.attendanceRecord.findMany({
     where: { placement: { student: { userId: user.id } } },
@@ -25,7 +26,10 @@ export default async function StudentAttendancePage() {
 
   return (
     <>
-      <PageHeader title="التحضير الميداني" description="سجّل حضورك وانصرافك من داخل جهة التدريب" />
+      <PageHeader
+        title="التحضير الميداني"
+        description={`سجّل حضورك وانصرافك من داخل جهة التدريب${latest?.workDays.length ? ` · يوم تدريبك: ${formatWorkDays(latest.workDays)}` : ""}`}
+      />
       <GpsCheckIn />
       <Card className="mt-4">
         <CardHeader><CardTitle>سجل الحضور</CardTitle></CardHeader>

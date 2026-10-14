@@ -61,6 +61,8 @@ export default async function PlacementsPage() {
     // النقل يخص التدريب الميداني الفعّال فقط
     canTransfer: (p.section?.mode ?? "FIELD") === "FIELD" && (p.status === "ASSIGNED" || p.status === "ACTIVE"),
     approvedHours: Math.round(p.approvedMinutes / 60),
+    workDays: p.workDays,
+    canEditDays: p.status === "ASSIGNED" || p.status === "ACTIVE",
   }));
 
   const orgs: TransferOrg[] = approvedOrgs.map((o) => ({

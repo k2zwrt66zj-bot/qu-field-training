@@ -13,6 +13,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { RISK_FLAG_LABELS } from "@/lib/geo/anti-spoof";
 import { MAJOR_LABELS } from "@/lib/labels";
+import { formatWorkDays } from "@/lib/weekdays";
 import { formatShortDateAr, formatTimeAr } from "@/lib/time";
 import { displaySaudiMobile, normalizeSaudiMobile } from "@/lib/sms-format";
 import { smsConfigured } from "@/server/sms";
@@ -96,7 +97,7 @@ export default async function FieldSupervisorPage() {
                   const hours = Math.round(p.approvedMinutes / 60);
                   return (
                     <TR key={p.id}>
-                      <TD><div className="font-medium">{p.student.user.fullName}</div><div className="text-xs text-muted-foreground">{p.student.universityId}</div></TD>
+                      <TD><div className="font-medium">{p.student.user.fullName}</div><div className="text-xs text-muted-foreground">{p.student.universityId} · يوم التدريب: {formatWorkDays(p.workDays)}</div></TD>
                       <TD className="text-xs">{MAJOR_LABELS[p.student.major]}</TD>
                       <TD>
                         <div className="text-xs tabular-nums">{hours} / {p.requiredHours}</div>
