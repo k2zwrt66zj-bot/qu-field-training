@@ -12,12 +12,6 @@ import { credentialsLogin } from "@/lib/auth/client-login";
 import { LOCK_MINUTES } from "@/lib/auth/password-policy";
 import { DEVELOPER_CREDIT } from "@/lib/developer";
 
-/** نقشة شبكية خفيفة مستوحاة من رمز شعار الجامعة */
-const LATTICE = {
-  backgroundImage:
-    "repeating-linear-gradient(45deg, rgba(255,255,255,.09) 0 2px, transparent 2px 26px), repeating-linear-gradient(-45deg, rgba(255,255,255,.09) 0 2px, transparent 2px 26px)",
-};
-
 const FEATURES = [
   { icon: MapPin, text: "تحضير يومي بالتحديد الجغرافي واعتماد فوري من المشرف المؤسسي" },
   { icon: FileText, text: "نماذج التدريب الرسمية بتواقيع رقمية ومسارات اعتماد واضحة" },
@@ -99,7 +93,6 @@ export default function LoginPage() {
     <div className="min-h-screen bg-qu-gray-50 dark:bg-background lg:grid lg:grid-cols-2">
       {/* الواجهة الكحلية: رأس منحني على الجوال، ونصف الشاشة على الحاسب */}
       <section className="relative overflow-hidden rounded-b-[2.25rem] bg-gradient-to-br from-qu-navy-800 via-qu-navy-700 to-qu-teal-800 px-6 pb-36 pt-14 text-center text-white lg:flex lg:flex-col lg:justify-between lg:rounded-none lg:p-12 lg:text-start">
-        <div aria-hidden className="absolute inset-0" style={LATTICE} />
         <div aria-hidden className="absolute -left-28 -top-28 size-80 rounded-full border-[44px] border-qu-teal-500/20 lg:size-[28rem] lg:border-[56px]" />
         <div aria-hidden className="absolute -bottom-24 -right-16 hidden size-72 rounded-full bg-qu-teal-500/10 lg:block" />
 
