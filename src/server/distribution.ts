@@ -106,6 +106,7 @@ export async function autoAssign(termId: string, dryRun = true) {
         startDate: term.startDate,
         endDate: term.endDate,
         requiredHours: term.requiredHours,
+        workDays: term.workDays,
         status: "ASSIGNED",
       })),
       skipDuplicates: true,

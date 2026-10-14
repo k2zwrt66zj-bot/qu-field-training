@@ -14,9 +14,15 @@ export interface TermSettings {
   lateAfterMinutes: number;
   minDailyMinutes: number;
   maxConsecutiveAbsences: number;
+  workDays: number[];
 }
 
-const FIELDS: { key: keyof TermSettings; label: string; hint?: string; group: "w" | "a" }[] = [
+type NumericKey = Exclude<keyof TermSettings, "workDays">;
+
+// أيام الأسبوع بترتيب التقويم المحلي (0=الأحد ... 6=السبت)
+const WEEKDAYS = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+
+const FIELDS: { key: NumericKey; label: string; hint?: string; group: "w" | "a" }[] = [
   { key: "fieldWeight", label: "وزن المشرف المؤسسي %", group: "w" },
   { key: "academicWeight", label: "وزن المشرف الأكاديمي %", group: "w" },
   { key: "attendanceWeight", label: "وزن التحضير والسجلات %", group: "w" },
@@ -74,8 +80,38 @@ export function TermSettingsForm({ termId, initial, gradesApproved }: { termId: 
         <h4 className="mb-2 text-sm font-semibold">الحضور والتنبيهات</h4>
         <div className="grid gap-3 sm:grid-cols-3">{FIELDS.filter((f) => f.group === "a").map(input)}</div>
       </div>
+      <fieldset>
+        <legend className="mb-1 text-sm font-semibold">أيام التدريب الأسبوعية</legend>
+        <p className="mb-2 text-[11px] text-muted-foreground">
+          الأيام التي يحضر فيها الطالب لجهة التدريب. يُسمح بالتحضير ويُسجَّل الغياب الآلي فيها فقط، وتسري على جميع الإسنادات الجارية.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {WEEKDAYS.map((name, d) => {
+            const on = v.workDays.includes(d);
+            return (
+              <button
+                key={d}
+                type="button"
+                aria-pressed={on}
+                onClick={() =>
+                  setV((s) => ({ ...s, workDays: on ? s.workDays.filter((x) => x !== d) : [...s.workDays, d].sort((a, b) => a - b) }))
+                }
+                className={cn(
+                  "rounded-lg border px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  on ? "border-qu-navy-700 bg-qu-navy-700 text-white" : "bg-background hover:bg-muted",
+                )}
+              >
+                {name}
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-1.5 text-xs tabular-nums text-muted-foreground">
+          {v.workDays.length === 0 ? <span className="text-red-700">اختر يوماً واحداً على الأقل</span> : `${v.workDays.length} يوم تدريب أسبوعياً`}
+        </p>
+      </fieldset>
       <div className="flex items-center gap-3">
-        <Button type="submit" disabled={pending || sum !== 100}>{pending ? <LoaderCircle className="animate-spin" /> : <Save />} حفظ الإعدادات</Button>
+        <Button type="submit" disabled={pending || sum !== 100 || v.workDays.length === 0}>{pending ? <LoaderCircle className="animate-spin" /> : <Save />} حفظ الإعدادات</Button>
         {msg && <span role="status" className={cn("text-sm", msg.ok ? "text-emerald-700" : "text-red-700")}>{msg.text}</span>}
       </div>
     </form>

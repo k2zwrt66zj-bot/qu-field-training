@@ -11,7 +11,8 @@ import { FIELD_MODE_ONLY } from "@/server/attendance";
 export async function runDailyAttendanceSweep(now = new Date()) {
   const today = riyadhDateOnly(now);
   const placements = await prisma.placement.findMany({
-    where: { status: { in: ["ASSIGNED", "ACTIVE"] }, startDate: { lte: today }, ...FIELD_MODE_ONLY },
+    // من باشر فعلاً فقط: من لم يُعتمد نموذج مباشرته ممنوع من التحضير، فلا يُسجَّل عليه غياب
+    where: { status: "ACTIVE", startDate: { lte: today }, ...FIELD_MODE_ONLY },
     include: { term: true, student: { include: { user: true } }, organization: true },
   });
 
@@ -24,7 +25,8 @@ export async function runDailyAttendanceSweep(now = new Date()) {
     const byDay = new Map(existing.map((r) => [r.date.toISOString().slice(0, 10), r.status]));
 
     // (1) تعليم الغياب
-    const cur = new Date(p.startDate);
+    // يبدأ العدّ من تاريخ المباشرة المعتمد إن تأخر عن بداية الفترة
+    const cur = new Date(p.commencedAt && p.commencedAt > p.startDate ? p.commencedAt : p.startDate);
     const missing: Date[] = [];
     while (cur <= until) {
       if (p.workDays.includes(cur.getUTCDay()) && !byDay.has(cur.toISOString().slice(0, 10))) missing.push(new Date(cur));
