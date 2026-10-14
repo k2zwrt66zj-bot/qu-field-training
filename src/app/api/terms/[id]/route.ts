@@ -12,7 +12,7 @@ const schema = z
     lateAfterMinutes: z.number().int().min(0).max(120),
     minDailyMinutes: z.number().int().min(0).max(600),
     maxConsecutiveAbsences: z.number().int().min(1).max(15),
-    // أيام التدريب الأسبوعية (0=الأحد ... 6=السبت)؛ تُرتَّب وتُزال المكررات
+    // أيام التدريب الافتراضية للإسنادات الجديدة (0=الأحد ... 6=السبت)؛ تُرتَّب وتُزال المكررات
     workDays: z
       .array(z.number().int().min(0).max(6))
       .min(1, "اختر يوم تدريب واحداً على الأقل")
@@ -42,11 +42,8 @@ export const PATCH = handler(async (req: Request, { params }: { params: Promise<
 
   await prisma.$transaction([
     prisma.academicTerm.update({ where: { id }, data: body }),
-    // الساعات المطلوبة وأيام التدريب تسري على الإسنادات الجارية
-    prisma.placement.updateMany({
-      where: { termId: id, status: { in: ["ASSIGNED", "ACTIVE"] } },
-      data: { requiredHours: body.requiredHours, ...(body.workDays && { workDays: body.workDays }) },
-    }),
+    // الساعات المطلوبة تسري على الإسنادات الجارية؛ أما أيام التدريب فلكل طالب يومه، والإعداد هنا افتراضي للتوزيع الجديد فقط
+    prisma.placement.updateMany({ where: { termId: id, status: { in: ["ASSIGNED", "ACTIVE"] } }, data: { requiredHours: body.requiredHours } }),
   ]);
   await audit(user.id, "term.update", "AcademicTerm", id, { before: term, after: body }, clientIp(req));
   return NextResponse.json({ ok: true, weightsChanged });

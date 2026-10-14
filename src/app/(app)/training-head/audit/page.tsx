@@ -58,6 +58,7 @@ const ACTION_LABELS: Record<string, string> = {
   "placement.auto_assign": "توزيع تلقائي",
   "placement.transfer": "نقل الطالب إلى مقر تدريب آخر",
   "placement.section": "تعديل شعبة الطالب",
+  "placement.work_days": "تحديد يوم تدريب الطالب",
   "section.create": "إنشاء شعبة",
   "section.update": "تعديل شعبة",
   "criteria.update": "تعديل بنود التقييم",
