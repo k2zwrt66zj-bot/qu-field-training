@@ -37,6 +37,9 @@ export async function getTrainingHeadStats(termId: string) {
       where: running,
       select: {
         id: true,
+        status: true,
+        workDays: true,
+        commencedAt: true,
         approvedMinutes: true,
         requiredHours: true,
         startDate: true,
@@ -51,18 +54,37 @@ export async function getTrainingHeadStats(termId: string) {
   const count = (s: string) => todayRecords.find((r) => r.status === s)?._count ?? 0;
   const presentToday = count("PRESENT") + count("LATE");
 
-  // اتجاه الحضور خلال 14 يوماً
-  const days = new Map<string, { date: string; PRESENT: number; LATE: number; ABSENT: number }>();
+  // عدد المتدربين المُنتظر حضورهم في يوم ما: من باشر فعلاً، واليوم ضمن فترته ومن أيام تدريبه الأسبوعية
+  const expectedOn = (day: Date) =>
+    placements.filter(
+      (p) =>
+        p.status === "ACTIVE" &&
+        p.workDays.includes(day.getUTCDay()) &&
+        day >= p.startDate &&
+        day <= p.endDate &&
+        (!p.commencedAt || day >= p.commencedAt),
+    ).length;
+  const scheduledToday = expectedOn(today);
+
+  // اتجاه الحضور خلال 14 يوماً — أيام التدريب المجدولة فقط (ولو لم يُسجَّل فيها شيء)
+  type Day = { date: string; PRESENT: number; LATE: number; ABSENT: number; EXCUSED: number; MISSING: number; expected: number };
+  const days = new Map<string, Day>();
   for (let d = new Date(from); d <= today; d.setUTCDate(d.getUTCDate() + 1)) {
     const k = d.toISOString().slice(0, 10);
-    days.set(k, { date: k, PRESENT: 0, LATE: 0, ABSENT: 0 });
+    days.set(k, { date: k, PRESENT: 0, LATE: 0, ABSENT: 0, EXCUSED: 0, MISSING: 0, expected: expectedOn(d) });
   }
   for (const r of trendRaw) {
     const row = days.get(r.date.toISOString().slice(0, 10));
-    if (row && (r.status === "PRESENT" || r.status === "LATE" || r.status === "ABSENT")) row[r.status] += r._count;
+    if (row && (r.status === "PRESENT" || r.status === "LATE" || r.status === "ABSENT" || r.status === "EXCUSED")) row[r.status] += r._count;
   }
-  // نستبعد أيام العطلة (لا سجلات)
-  const trend = [...days.values()].filter((d) => d.PRESENT + d.LATE + d.ABSENT > 0);
+  const todayKey = today.toISOString().slice(0, 10);
+  for (const d of days.values()) {
+    // «لم يُسجَّل»: يوم تدريب مضى بلا تحضير ولا غياب مسجّل (اليوم الجاري يظهر في «لم يحضّروا بعد»)
+    if (d.date < todayKey) d.MISSING = Math.max(0, d.expected - (d.PRESENT + d.LATE + d.ABSENT + d.EXCUSED));
+  }
+  const trend = [...days.values()]
+    .filter((d) => d.expected > 0 || d.PRESENT + d.LATE + d.ABSENT + d.EXCUSED > 0)
+    .map(({ date, PRESENT, LATE, ABSENT, MISSING }) => ({ date, PRESENT, LATE, ABSENT, MISSING }));
 
   // الحالات الحرجة: غياب متكرر أو تأخر في الساعات
   const critical = placements
@@ -91,7 +113,8 @@ export async function getTrainingHeadStats(termId: string) {
       active,
       presentToday,
       lateToday: count("LATE"),
-      notYet: Math.max(0, active - presentToday - count("ABSENT") - count("EXCUSED")),
+      scheduledToday,
+      notYet: Math.max(0, scheduledToday - presentToday - count("ABSENT") - count("EXCUSED")),
       pendingApprovals,
       suspiciousOpen,
       criticalAlerts: alerts.filter((a) => a.severity === "CRITICAL").length,

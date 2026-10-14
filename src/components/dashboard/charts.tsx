@@ -6,7 +6,7 @@ import { CHART_CATEGORICAL } from "@/lib/brand";
 // ألوان الفئات (الهوية الرسمية) — مُتحقق منها بأداة فحص عمى الألوان
 const CAT = { primary: CHART_CATEGORICAL[0], secondary: CHART_CATEGORICAL[1] };
 // ألوان الحالة محجوزة للحالة فقط (حاضر/متأخر/غائب) وتظهر دائماً مع وسيلة إيضاح
-const STATUS = { PRESENT: "#15803d", LATE: "#d97706", ABSENT: "#dc2626" };
+const STATUS = { PRESENT: "#15803d", LATE: "#d97706", ABSENT: "#dc2626", MISSING: "#94a3b8" };
 const AXIS = { fontSize: 12, fill: "hsl(150 3% 42%)" };
 const GRID = "hsl(150 5% 90%)";
 
@@ -22,8 +22,8 @@ const dayLabel = (iso: string) =>
   new Date(iso).toLocaleDateString("ar-SA-u-ca-gregory-nu-latn", { day: "numeric", month: "short", timeZone: "UTC" });
 
 /** اتجاه الحضور اليومي (أعمدة مكدسة بالحالة) */
-export function AttendanceTrendChart({ data }: { data: { date: string; PRESENT: number; LATE: number; ABSENT: number }[] }) {
-  if (!data.length) return <Empty />;
+export function AttendanceTrendChart({ data }: { data: { date: string; PRESENT: number; LATE: number; ABSENT: number; MISSING: number }[] }) {
+  if (!data.length) return <Empty text="لا توجد أيام تدريب مجدولة خلال الأسبوعين الماضيين" />;
   return (
     <ResponsiveContainer width="100%" height={260}>
       <BarChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
@@ -34,7 +34,8 @@ export function AttendanceTrendChart({ data }: { data: { date: string; PRESENT: 
         <Legend wrapperStyle={{ fontSize: 12 }} formatter={legendText} />
         <Bar dataKey="PRESENT" name="حاضر" stackId="a" fill={STATUS.PRESENT} stroke="#fff" strokeWidth={1} />
         <Bar dataKey="LATE" name="متأخر" stackId="a" fill={STATUS.LATE} stroke="#fff" strokeWidth={1} />
-        <Bar dataKey="ABSENT" name="غائب" stackId="a" fill={STATUS.ABSENT} stroke="#fff" strokeWidth={1} radius={[4, 4, 0, 0]} />
+        <Bar dataKey="ABSENT" name="غائب" stackId="a" fill={STATUS.ABSENT} stroke="#fff" strokeWidth={1} />
+        <Bar dataKey="MISSING" name="لم يُسجَّل" stackId="a" fill={STATUS.MISSING} stroke="#fff" strokeWidth={1} radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

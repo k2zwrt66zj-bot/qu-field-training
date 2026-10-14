@@ -291,6 +291,7 @@ model AcademicTerm {
   lateAfterMinutes       Int @default(15) // التأخر بعد بداية الدوام
   minDailyMinutes        Int @default(180) // الحد الأدنى لاحتساب اليوم
   maxConsecutiveAbsences Int @default(3) // قبل التنبيه الحرج
+  workDays               Int[] @default([0, 1, 2, 3, 4]) // أيام التدريب الأسبوعية (0=الأحد ... 6=السبت) — تسري على الإسنادات الجارية
 
   createdAt DateTime @default(now())
 

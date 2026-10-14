@@ -58,6 +58,7 @@ export default async function SettingsPage() {
                 lateAfterMinutes: term.lateAfterMinutes,
                 minDailyMinutes: term.minDailyMinutes,
                 maxConsecutiveAbsences: term.maxConsecutiveAbsences,
+                workDays: term.workDays,
               }}
             />
           </CardContent>
